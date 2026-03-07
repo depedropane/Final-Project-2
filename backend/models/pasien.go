@@ -9,7 +9,7 @@ type Pasien struct {
 	gorm.Model
 	Nama         string    `json:"nama"`
 	Email        string    `json:"email" gorm:"unique"`
-	Password     string    `json:"-"` 
+	Password     string    `json:"-"`
 	Nik          string    `json:"nik" gorm:"unique"`
 	TanggalLahir time.Time `json:"tanggal_lahir"`
 	TempatLahir  string    `json:"tempat_lahir"`
