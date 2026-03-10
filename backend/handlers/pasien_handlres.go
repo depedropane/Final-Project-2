@@ -39,7 +39,13 @@ func RegisterPasien(c *gin.Context) {
 		return
 	}
 
-	tglLahir, _ := time.Parse("2006-01-02", input.TanggalLahir)
+	// Parsing tanggal sesuai format YYYY-MM-DD dari Flutter/Postman
+	tglLahir, err := time.Parse("2006-01-02", input.TanggalLahir)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "Format tanggal salah, gunakan YYYY-MM-DD"})
+		return
+	}
+
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 
 	pasien := models.Pasien{
@@ -54,8 +60,13 @@ func RegisterPasien(c *gin.Context) {
 		NoTelepon:    input.NoTelepon,
 	}
 
+	// Tambahkan .Error untuk menangkap pesan asli dari database
 	if err := database.DB.Create(&pasien).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": "Gagal simpan database"})
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false, 
+			"message": "Gagal simpan database",
+			"error": err.Error(), // Menampilkan detail error (misal: duplicate key)
+		})
 		return
 	}
 
