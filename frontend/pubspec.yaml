@@ -1,5 +1,5 @@
 name: frontend
-description: "Medical App - SahabatSehat"
+description: "Medical App - Nauli Reminder"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -26,3 +26,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/logo4.jpg

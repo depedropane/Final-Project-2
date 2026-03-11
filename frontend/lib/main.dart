@@ -3,12 +3,18 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config/app_config.dart';
 import 'providers/auth_provider.dart';
-import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
 import 'screens/home_screen.dart';
-// 1. TAMBAHKAN IMPORT INI
 import 'screens/onboarding_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // ── HAPUS BARIS INI setelah selesai testing onboarding ──
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove(AppConfig.hasSeenOnboardingKey);
+  // ─────────────────────────────────────────────────────────
+
   runApp(const MyApp());
 }
 
@@ -22,7 +28,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
       child: MaterialApp(
-        title: 'SahabatSehat',
+        title: 'Nauli Reminder',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           primarySwatch: Colors.teal,
@@ -61,12 +67,14 @@ class _SplashScreenState extends State<SplashScreen> {
 
     Widget nextScreen;
     if (!hasSeenOnboarding) {
-      // 2. UBAH BAGIAN INI: Panggil class OnboardingScreen yang asli
+      // Belum lihat onboarding → tampilkan onboarding
       nextScreen = const OnboardingScreen();
     } else if (token != null) {
+      // Sudah login → langsung ke home
       nextScreen = const HomeScreen();
     } else {
-      nextScreen = const LoginScreen();
+      // Sudah onboarding tapi belum login → ke register
+      nextScreen = const RegisterScreen();
     }
 
     Navigator.pushReplacement(
@@ -78,7 +86,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF26A69A),
+      backgroundColor: const Color(0xFF15BE77),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -86,21 +94,19 @@ class _SplashScreenState extends State<SplashScreen> {
             Container(
               width: 120,
               height: 120,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-              ),
-              child: const Icon(
-                Icons.medical_services,
-                size: 60,
-                color: Color(0xFF26A69A),
+              decoration: const BoxDecoration(shape: BoxShape.circle),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/logo4.jpg',
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
             const SizedBox(height: 24),
             const Text(
-              'SahabatSehat',
+              'Nauli Reminder',
               style: TextStyle(
-                fontSize: 32,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -108,10 +114,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 8),
             const Text(
               'Perawat Pribadi Anda',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white70,
-              ),
+              style: TextStyle(fontSize: 15, color: Colors.white70),
             ),
           ],
         ),

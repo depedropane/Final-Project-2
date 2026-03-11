@@ -10,7 +10,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Pastikan G-nya KAPITAL agar bisa dibaca dari routes.go
 func GetPasien(c *gin.Context) {
 	var pasien []models.Pasien
 	if err := database.DB.Find(&pasien).Error; err != nil {
@@ -39,7 +38,6 @@ func RegisterPasien(c *gin.Context) {
 		return
 	}
 
-	// Parsing tanggal sesuai format YYYY-MM-DD dari Flutter/Postman
 	tglLahir, err := time.Parse("2006-01-02", input.TanggalLahir)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "Format tanggal salah, gunakan YYYY-MM-DD"})
@@ -60,20 +58,18 @@ func RegisterPasien(c *gin.Context) {
 		NoTelepon:    input.NoTelepon,
 	}
 
-	// Tambahkan .Error untuk menangkap pesan asli dari database
 	if err := database.DB.Create(&pasien).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false, 
 			"message": "Gagal simpan database",
-			"error": err.Error(), // Menampilkan detail error (misal: duplicate key)
-		})
+			"error": err.Error(), 
+			})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"success": true, "message": "Registrasi berhasil", "data": pasien})
 }
 
-// Pastikan L-nya KAPITAL
 func LoginPasien(c *gin.Context) {
 	var input struct {
 		Email    string `json:"email"`

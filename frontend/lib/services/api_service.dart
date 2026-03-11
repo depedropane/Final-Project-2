@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../models/pasien_model.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiService {
   Future<String?> getToken() async {
@@ -32,8 +33,8 @@ class ApiService {
     try {
       final url = Uri.parse('${AppConfig.baseUrl}${AppConfig.registerPasien}');
       
-      print('Registering to: $url');
-      print('Data: ${jsonEncode(pasien.toJson())}');
+      debugPrint('Registering to: $url');
+      debugPrint('Data: ${jsonEncode(pasien.toJson())}');
       
       final response = await http.post(
         url,
@@ -41,8 +42,8 @@ class ApiService {
         body: jsonEncode(pasien.toJson()),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
 
       final data = jsonDecode(response.body);
 
@@ -60,7 +61,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Error: $e');
+      debugPrint('Error: $e');
       return {
         'success': false,
         'message': 'Network error: $e',
@@ -93,6 +94,7 @@ class ApiService {
         return {'success': false, 'message': data['message'] ?? 'Login failed'};
       }
     } catch (e) {
+      debugPrint('Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }

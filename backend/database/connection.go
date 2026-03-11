@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	"golang-app/models" // Sesuaikan dengan nama modul di go.mod kamu
+	"golang-app/models" 
 	"log"
 	"os"
 
@@ -28,7 +28,7 @@ func ConnectDatabase() {
 		panic("Gagal koneksi ke database!")
 	}
 
-	// Tambahkan baris ini untuk membuat tabel secara otomatis
+	//untuk membuat tabel secara otomatis
 	err = database.AutoMigrate(&models.Pasien{})
 	if err != nil {
 		log.Fatal("Gagal migrasi database:", err)

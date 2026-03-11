@@ -1,14 +1,14 @@
 package routes
 
 import (
-	"golang-app/handlers" // Pastikan ini sesuai dengan nama module di go.mod kamu
+	"golang-app/handlers"
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes() *gin.Engine {
 	r := gin.Default()
 
-	// Middleware CORS (Penting agar Flutter bisa akses API jika beda host/port)
+	// Middleware CORS
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
