@@ -10,11 +10,6 @@ import 'screens/onboarding_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── HAPUS BARIS INI setelah selesai testing onboarding ──
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.remove(AppConfig.hasSeenOnboardingKey);
-  // ─────────────────────────────────────────────────────────
-
   runApp(const MyApp());
 }
 

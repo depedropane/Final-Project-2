@@ -20,20 +20,24 @@ func SetupRoutes() *gin.Engine {
 		c.Next()
 	})
 
-	// Grouping API sesuai dengan AppConfig.baseUrl di Flutter: /api/v1
 	api := r.Group("/api/v1")
 	{
-		// Grouping untuk fitur Pasien
+		// ── Pasien ──────────────────────────────────────────────────────────
 		pasien := api.Group("/pasien")
 		{
-			// GET /api/v1/pasien (Untuk mengambil semua data pasien)
 			pasien.GET("", handlers.GetPasien)
-			
-			// POST /api/v1/pasien/register (Untuk pendaftaran pasien baru)
 			pasien.POST("/register", handlers.RegisterPasien)
-			
-			// POST /api/v1/pasien/login (Untuk login pasien)
 			pasien.POST("/login", handlers.LoginPasien)
+		}
+
+		// ── Jadwal Obat ──────────────────────────────────────────────────────
+		jadwalObat := api.Group("/jadwal-obat")
+		{
+			// GET  /api/v1/jadwal-obat/:pasien_id → ambil jadwal hari ini
+			jadwalObat.GET("/:pasien_id", handlers.GetJadwalObatHariIni)
+
+			// PUT  /api/v1/jadwal-obat/tracking/:jadwal_obat_id → update status
+			jadwalObat.PUT("/tracking/:jadwal_obat_id", handlers.UpdateStatusTracking)
 		}
 	}
 
