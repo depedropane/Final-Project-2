@@ -16,13 +16,13 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _namaController       = TextEditingController();
-  final _emailController      = TextEditingController();
-  final _passwordController   = TextEditingController();
-  final _nikController        = TextEditingController();
+  final _namaController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nikController = TextEditingController();
   final _tanggalLahirController = TextEditingController();
-  final _alamatController     = TextEditingController();
-  final _noTeleponController  = TextEditingController();
+  final _alamatController = TextEditingController();
+  final _noTeleponController = TextEditingController();
 
   String? _selectedGender;
   bool _obscurePassword = true;
@@ -192,8 +192,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         keyboardType: TextInputType.emailAddress,
                         decoration: _inputDec(
                           'Contoh: megahtoruan@gmail.com',
-                          suffix: Icon(Icons.visibility_off_outlined,
-                              color: Colors.grey[400]),
                         ),
                         validator: (v) =>
                             v == null || v.isEmpty ? 'Email wajib diisi' : null,
@@ -305,8 +303,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         controller: _alamatController,
                         maxLines: 3,
                         decoration: _inputDec('Jalan, Kelurahan, Kecamatan'),
-                        validator: (v) =>
-                            v == null || v.isEmpty ? 'Alamat wajib diisi' : null,
+                        validator: (v) => v == null || v.isEmpty
+                            ? 'Alamat wajib diisi'
+                            : null,
                       ),
                       const SizedBox(height: 32),
 
@@ -424,11 +423,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label,
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected
-                      ? const Color(0xFF15BE77)
-                      : Colors.grey[700],
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  color: selected ? const Color(0xFF15BE77) : Colors.grey[700],
                 ),
               ),
             ],
