@@ -1,4 +1,4 @@
-# SahabatSehat 🏥
+# Nauli Reminder 🏥
 
 Aplikasi kesehatan berbasis mobile yang memudahkan pasien untuk mendaftar, login, dan mengakses layanan kesehatan secara digital.
 
@@ -6,7 +6,7 @@ Aplikasi kesehatan berbasis mobile yang memudahkan pasien untuk mendaftar, login
 
 ## 📌 Deskripsi
 
-**SahabatSehat** adalah aplikasi full-stack yang terdiri dari:
+**Nauli Reminder** adalah aplikasi full-stack yang terdiri dari:
 - **Frontend**: Aplikasi mobile Flutter (lintas platform: Android, iOS, Web, Linux, macOS, Windows)
 - **Backend**: REST API menggunakan Go (Gin framework) dengan database PostgreSQL
 
@@ -134,58 +134,6 @@ Final-Project-2/
 
 > **Catatan:** Secara default, frontend dikonfigurasi untuk terhubung ke `http://10.0.2.2:8080/api/v1` (alamat localhost dari Android Emulator). Jika menggunakan device fisik atau platform lain, ubah `baseUrl` di `lib/config/app_config.dart`.
 
----
-
-## 📡 API Endpoints
-
-Base URL: `http://localhost:8080/api/v1`
-
-| Method | Endpoint | Deskripsi |
-|--------|----------|-----------|
-| `GET` | `/pasien` | Mengambil semua data pasien |
-| `POST` | `/pasien/register` | Registrasi pasien baru |
-| `POST` | `/pasien/login` | Login pasien |
-
-### Contoh Request — Register Pasien
-
-**POST** `/api/v1/pasien/register`
-
-```json
-{
-  "nama": "Budi Santoso",
-  "email": "budi@example.com",
-  "password": "password123",
-  "nik": "3201234567890001",
-  "tanggal_lahir": "1990-05-15",
-  "tempat_lahir": "Jakarta",
-  "alamat": "Jl. Sudirman No. 10, Jakarta",
-  "jenis_kelamin": "Laki-laki",
-  "no_telepon": "08123456789"
-}
-```
-
-### Contoh Request — Login Pasien
-
-**POST** `/api/v1/pasien/login`
-
-```json
-{
-  "email": "budi@example.com",
-  "password": "password123"
-}
-```
-
----
-
-## 🖥️ Fitur Aplikasi
-
-- **Onboarding** — Tampilan pengenalan aplikasi untuk pengguna baru
-- **Registrasi Pasien** — Pendaftaran akun dengan data lengkap (NIK, tanggal lahir, alamat, dll.)
-- **Login Pasien** — Autentikasi dengan email & password (password dienkripsi dengan bcrypt)
-- **Session Management** — Token & data pengguna disimpan secara lokal menggunakan Shared Preferences
-- **Home Screen** — Halaman utama setelah login berhasil
-
----
 
 ## 👤 Author
 
