@@ -29,11 +29,21 @@ func ConnectDatabase() {
 	}
 
 	err = database.AutoMigrate(
-		&models.Pasien{},      
-		&models.TrackingObat{}, 
-		&models.Obat{},       
-		&models.JadwalObat{},   
-		&models.ResepObat{},    
+		// Level 1: tabel tanpa FK ke sesama tabel aplikasi
+		&models.Pasien{},
+		&models.Nakes{},
+
+		// Level 2: tabel yang FK ke pasien / nakes saja
+		&models.Obat{},
+		&models.Jadwal{},
+		&models.Rutinitas{},
+		&models.TrackingObat{},
+
+		// Level 3: tabel yang FK ke obat / jadwal / rutinitas
+		&models.JadwalObat{},
+		&models.ResepObat{},
+		&models.TrackingJadwal{},
+		&models.TrackingRutinitas{},
 	)
 	if err != nil {
 		log.Fatal("Gagal migrasi database:", err)

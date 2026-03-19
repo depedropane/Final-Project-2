@@ -2,6 +2,7 @@ package routes
 
 import (
 	"golang-app/handlers"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -30,13 +31,24 @@ func SetupRoutes() *gin.Engine {
 			pasien.POST("/login", handlers.LoginPasien)
 		}
 
+		// ── Nakes ────────────────────────────────────────────────────────────
+		nakes := api.Group("/nakes")
+		{
+			nakes.GET("", handlers.GetNakes)
+			nakes.POST("/register", handlers.RegisterNakes)
+		}
+
+		// ── Obat ─────────────────────────────────────────────────────────────
+		obat := api.Group("/obat")
+		{
+			obat.GET("", handlers.GetObat)
+			obat.POST("", handlers.CreateObat)
+		}
+
 		// ── Jadwal Obat ──────────────────────────────────────────────────────
 		jadwalObat := api.Group("/jadwal-obat")
 		{
-			// GET  /api/v1/jadwal-obat/:pasien_id → ambil jadwal hari ini
 			jadwalObat.GET("/:pasien_id", handlers.GetJadwalObatHariIni)
-
-			// PUT  /api/v1/jadwal-obat/tracking/:jadwal_obat_id → update status
 			jadwalObat.PUT("/tracking/:jadwal_obat_id", handlers.UpdateStatusTracking)
 		}
 	}
