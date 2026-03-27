@@ -37,20 +37,6 @@ func SetupRoutes() *gin.Engine {
 			nakes.GET("", handlers.GetNakes)
 			nakes.POST("/register", handlers.RegisterNakes)
 		}
-
-		// ── Obat ─────────────────────────────────────────────────────────────
-		obat := api.Group("/obat")
-		{
-			obat.GET("", handlers.GetObat)
-			obat.POST("", handlers.CreateObat)
-		}
-
-		// ── Jadwal Obat ──────────────────────────────────────────────────────
-		jadwalObat := api.Group("/jadwal-obat")
-		{
-			jadwalObat.GET("/:pasien_id", handlers.GetJadwalObatHariIni)
-			jadwalObat.PUT("/tracking/:jadwal_obat_id", handlers.UpdateStatusTracking)
-		}
 	}
 
 	return r
