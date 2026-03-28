@@ -1,5 +1,7 @@
 # Nauli Reminder 🏥
 
+> ⚠️ **STATUS: MASIH DALAM FASE PENGEMBANGAN** - Dokumentasi ini belum final dan akan terus diperbarui.
+
 Aplikasi kesehatan berbasis mobile yang memudahkan pasien untuk mendaftar, login, dan mengakses layanan kesehatan secara digital.
 
 ---
@@ -51,7 +53,8 @@ Final-Project-2/
 │   │   ├── pasien.go        # Model data pasien
 │   │   └── nakes.go         # Model data tenaga kesehatan
 │   ├── handlers/
-│   │   └── pasien_handlres.go  # Handler CRUD pasien
+│   │   ├── pasien_handler.go    # Handler CRUD pasien
+│   │   └── nakes_handler.go     # Handler CRUD nakes
 │   └── routes/
 │       └── routes.go        # Definisi endpoint API
 │
