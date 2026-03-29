@@ -29,9 +29,9 @@ func ConnectDatabase() {
 	}
 
 	err = database.AutoMigrate(
-		// Level 1: tabel tanpa FK ke sesama tabel aplikasi
 		&models.Pasien{},
 		&models.Nakes{},
+		&models.Jadwal{},
 	)
 	if err != nil {
 		log.Fatal("Gagal migrasi database:", err)

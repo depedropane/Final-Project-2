@@ -1,201 +1,137 @@
 import 'package:flutter/material.dart';
 
-class TambahJadwalPage extends StatefulWidget {
-  const TambahJadwalPage({Key? key}) : super(key: key);
+class TambahJadwalKonsumsi extends StatefulWidget {
+  const TambahJadwalKonsumsi({super.key});
 
   @override
-  State<TambahJadwalPage> createState() => _TambahJadwalPageState();
+  State<TambahJadwalKonsumsi> createState() => _TambahJadwalKonsumsiState();
 }
 
-class _TambahJadwalPageState extends State<TambahJadwalPage>
-    with SingleTickerProviderStateMixin {
-
-  late TabController _tabController;
-
-  final TextEditingController namaController = TextEditingController();
-  final TextEditingController targetController = TextEditingController();
-
-  List<String> selectedTimes = [];
-
+class _TambahJadwalKonsumsiState extends State<TambahJadwalKonsumsi> {
+  String selectedWaktu = "Pagi";
   String selectedFrekuensi = "Setiap Hari";
   String selectedDurasi = "7 Hari";
-
-  final List<String> waktuList = ["Pagi", "Siang", "Sore", "Malam"];
-
-  @override
-  void initState() {
-    _tabController = TabController(length: 2, vsync: this);
-    _tabController.index = 1; // default ke Rutinitas
-    super.initState();
-  }
-
-  void toggleWaktu(String waktu) {
-    setState(() {
-      if (selectedTimes.contains(waktu)) {
-        selectedTimes.remove(waktu);
-      } else {
-        selectedTimes.add(waktu);
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF8FAFC),
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: const Icon(Icons.arrow_back, color: Colors.black),
         centerTitle: true,
         title: const Text(
           "Tambah Jadwal",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: const Color(0xff22C55E),
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: const Color(0xff22C55E),
-          tabs: const [
-            Tab(text: "Obat"),
-            Tab(text: "Rutinitas"),
-          ],
-        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            const SizedBox(height: 20),
-
-            /// Nama Rutinitas
-            const Text("Nama Rutinitas"),
-            const SizedBox(height: 8),
-            _buildInputField(
-              controller: namaController,
-              hint: "Contoh: Minum Air",
+            // TAB
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                tabItem("Obat", true),
+                const SizedBox(width: 40),
+                tabItem("Rutinitas", false),
+              ],
             ),
 
             const SizedBox(height: 20),
 
-            /// Target
-            const Text("Target"),
-            const SizedBox(height: 8),
-            _buildInputField(
-              controller: targetController,
-              hint: "Contoh: 2 Liter",
+            // INPUT NAMA
+            const Text("Nama Obat"),
+            const SizedBox(height: 5),
+            textField("Contoh: Paracetamol"),
+
+            const SizedBox(height: 15),
+
+            // DOSIS
+            const Text("Dosis"),
+            const SizedBox(height: 5),
+            textField("Contoh: 500mg"),
+
+            const SizedBox(height: 15),
+
+            // FOTO
+            const Text("Foto Obat (Opsional)"),
+            const SizedBox(height: 5),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              height: 50,
+              decoration: boxDecoration(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text("Upload foto"),
+                  Icon(Icons.camera_alt_outlined)
+                ],
+              ),
             ),
 
             const SizedBox(height: 20),
 
-            /// Waktu Pengingat
+            // WAKTU
             const Text("Waktu Pengingat"),
             const SizedBox(height: 10),
-
             Wrap(
               spacing: 10,
               runSpacing: 10,
-              children: waktuList.map((waktu) {
-                final isSelected = selectedTimes.contains(waktu);
-
-                return GestureDetector(
-                  onTap: () => toggleWaktu(waktu),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xffDCFCE7)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected
-                            ? const Color(0xff22C55E)
-                            : Colors.grey.shade300,
-                      ),
-                    ),
-                    child: Text(
-                      waktu,
-                      style: TextStyle(
-                        color: isSelected
-                            ? const Color(0xff16A34A)
-                            : Colors.black,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+              children: [
+                waktuButton("Pagi"),
+                waktuButton("Siang"),
+                waktuButton("Sore"),
+                waktuButton("Malam"),
+              ],
             ),
 
             const SizedBox(height: 20),
 
-            /// Frekuensi & Durasi
+            // DROPDOWN
             Row(
               children: [
                 Expanded(
-                  child: _buildDropdown(
-                    label: "Frekuensi",
-                    value: selectedFrekuensi,
-                    items: const [
-                      "Setiap Hari",
-                      "Senin-Jumat",
-                      "3x Seminggu"
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedFrekuensi = value!;
-                      });
-                    },
+                  child: dropdownField(
+                    "Frekuensi",
+                    selectedFrekuensi,
+                    ["Setiap Hari", "2x Sehari", "3x Sehari"],
+                        (val) => setState(() => selectedFrekuensi = val!),
                   ),
                 ),
-                const SizedBox(width: 15),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: _buildDropdown(
-                    label: "Durasi",
-                    value: selectedDurasi,
-                    items: const [
-                      "7 Hari",
-                      "30 Hari",
-                      "90 Hari"
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        selectedDurasi = value!;
-                      });
-                    },
+                  child: dropdownField(
+                    "Durasi",
+                    selectedDurasi,
+                    ["3 Hari", "7 Hari", "14 Hari"],
+                        (val) => setState(() => selectedDurasi = val!),
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
 
-            /// Button Simpan
+            // BUTTON
             SizedBox(
               width: double.infinity,
+              height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xff22C55E),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: Colors.green,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () {
-                  print("Nama: ${namaController.text}");
-                  print("Target: ${targetController.text}");
-                  print("Waktu: $selectedTimes");
-                  print("Frekuensi: $selectedFrekuensi");
-                  print("Durasi: $selectedDurasi");
+                  // TODO: connect API
                 },
                 child: const Text(
                   "Simpan Jadwal",
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             )
@@ -205,57 +141,92 @@ class _TambahJadwalPageState extends State<TambahJadwalPage>
     );
   }
 
-  Widget _buildInputField({
-    required TextEditingController controller,
-    required String hint,
-  }) {
+  // ================= COMPONENT =================
+
+  Widget tabItem(String text, bool active) {
+    return Column(
+      children: [
+        Text(
+          text,
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: active ? Colors.green : Colors.grey),
+        ),
+        const SizedBox(height: 5),
+        if (active)
+          Container(
+            height: 3,
+            width: 40,
+            color: Colors.green,
+          )
+      ],
+    );
+  }
+
+  Widget textField(String hint) {
     return TextField(
-      controller: controller,
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
         fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 15, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,
         ),
       ),
     );
   }
 
-  Widget _buildDropdown({
-    required String label,
-    required String value,
-    required List<String> items,
-    required Function(String?) onChanged,
-  }) {
+  Widget waktuButton(String label) {
+    bool isSelected = selectedWaktu == label;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() => selectedWaktu = label);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.green[100] : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+              color: isSelected ? Colors.green : Colors.grey.shade300),
+        ),
+        child: Text(label),
+      ),
+    );
+  }
+
+  Widget dropdownField(String title, String value, List<String> items,
+      Function(String?) onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label),
-        const SizedBox(height: 8),
+        Text(title),
+        const SizedBox(height: 5),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: boxDecoration(),
           child: DropdownButton<String>(
             value: value,
             isExpanded: true,
             underline: const SizedBox(),
             items: items
-                .map((item) => DropdownMenuItem(
-                      value: item,
-                      child: Text(item),
-                    ))
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                 .toList(),
             onChanged: onChanged,
           ),
-        ),
+        )
       ],
+    );
+  }
+
+  BoxDecoration boxDecoration() {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey.shade300),
     );
   }
 }

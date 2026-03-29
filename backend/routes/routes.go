@@ -37,6 +37,14 @@ func SetupRoutes() *gin.Engine {
 			nakes.GET("", handlers.GetNakes)
 			nakes.POST("/register", handlers.RegisterNakes)
 		}
+
+		// ── Jadwal ─────────────────────────────
+		jadwal := api.Group("/jadwal")
+		{
+			jadwal.GET("", handlers.GetJadwal)
+			jadwal.POST("", handlers.CreateJadwal)
+			jadwal.DELETE("/:id", handlers.DeleteJadwal)
+		}
 	}
 
 	return r
