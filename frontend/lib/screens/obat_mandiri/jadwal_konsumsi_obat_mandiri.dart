@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'tambah_jadwal_konsumsi_obat_mandiri.dart';
+import './tambah_jadwal_konsumsi_obat_mandiri.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class JadwalKonsumsiObatMandiri extends StatelessWidget {
+  const JadwalKonsumsiObatMandiri({super.key});
 
   @override
   Widget build(BuildContext context) {

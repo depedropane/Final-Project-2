@@ -5,6 +5,8 @@ import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../models/jadwal_obat_model.dart';
 import '../config/app_config.dart';
+import './obat_mandiri/jadwal_konsumsi_obat_mandiri.dart';
+import './obat_mandiri/tambah_jadwal_konsumsi_obat_mandiri.dart';
 import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -192,13 +194,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: 'Riwayat',
                       subtitle: 'Kepatuhan Minum')),
               const SizedBox(width: 12),
-              Expanded(
-                  child: _menuCard(
-                      icon: Icons.fitness_center,
-                      iconColor: const Color(0xFFE91E8C),
-                      bgColor: const Color(0xFFFCE4EC),
-                      title: 'Rutinitas Sehat',
-                      subtitle: 'Jadwal Aktivitas')),
+Expanded(
+  child: GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const JadwalKonsumsiObatMandiri(),
+        ),
+      );
+    },
+    child: _menuCard(
+      icon: Icons.fitness_center,
+      iconColor: const Color(0xFFE91E8C),
+      bgColor: const Color(0xFFFCE4EC),
+      title: 'Rutinitas Sehat',
+      subtitle: 'Jadwal Aktivitas',
+    ),
+  ),
+),
             ],
           ),
         ],
@@ -549,7 +563,23 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 28),
             ),
           ),
-          _navItem(Icons.directions_run_rounded, 2),
+          GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const JadwalKonsumsiObatMandiri(),
+      ),
+    );
+  },
+  child: Icon(
+    Icons.directions_run_rounded,
+    color: _selectedNav == 2
+        ? const Color(0xFF15BE77)
+        : Colors.grey[400],
+    size: 26,
+  ),
+),
           GestureDetector(
             onTap: () async {
               await auth.logout();
