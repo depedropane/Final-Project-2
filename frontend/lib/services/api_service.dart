@@ -36,6 +36,16 @@ class ApiService {
     return prefs.getInt(AppConfig.userIdKey);
   }
 
+  Future<void> saveUserRole(String role) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConfig.userRoleKey, role);
+  }
+
+  Future<String?> getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConfig.userRoleKey);
+  }
+
   // ── Register ─────────────────────────────────────────────────────────────────
   Future<Map<String, dynamic>> registerPasien(Pasien pasien) async {
     try {
@@ -50,18 +60,27 @@ class ApiService {
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 201) {
-        return {'success': true, 'message': data['message'], 'data': data['data']};
+        return {
+          'success': true,
+          'message': data['message'],
+          'data': data['data']
+        };
       }
-      return {'success': false, 'message': data['message'] ?? 'Registrasi gagal'};
+      return {
+        'success': false,
+        'message': data['message'] ?? 'Registrasi gagal'
+      };
     } catch (e) {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
 
-  // ── Login ────────────────────────────────────────────────────────────────────
-  Future<Map<String, dynamic>> loginPasien(String email, String password) async {
+  // ── Login Pasien ────────────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> loginPasien(
+      String email, String password) async {
     try {
       final url = Uri.parse('${AppConfig.baseUrl}${AppConfig.loginPasien}');
+      debugPrint('Login Pasien to: $url');
 
       final response = await http.post(
         url,
@@ -69,16 +88,83 @@ class ApiService {
         body: jsonEncode({'email': email, 'password': password}),
       );
 
-      final data = jsonDecode(response.body);
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
-        final token = data['data']['token'];
-        final userData = data['data']['user'];
-        await saveToken(token);
-        await saveUserData(Pasien.fromJson(userData), userData['pasien_id'] ?? 0);
-        return {'success': true, 'message': data['message'], 'data': data['data']};
+        final data = jsonDecode(response.body);
+        final token = data['token'] as String?;
+        final userData = data['data'] as Map<String, dynamic>?;
+        final message = data['message'] as String? ?? 'Login berhasil';
+
+        if (token != null && userData != null) {
+          await saveToken(token);
+          await saveUserRole('pasien');
+
+          // Create Pasien object from response data
+          final pasien = Pasien(
+            pasienId: userData['id'] as int?,
+            nama: userData['nama'] as String? ?? '',
+            email: userData['email'] as String? ?? '',
+          );
+
+          await saveUserData(pasien, userData['id'] as int? ?? 0);
+          return {'success': true, 'message': message, 'data': userData};
+        }
       }
-      return {'success': false, 'message': data['message'] ?? 'Login gagal'};
+
+      // Handle error response
+      try {
+        final data = jsonDecode(response.body);
+        final message = data['message'] as String? ?? 'Login gagal';
+        return {'success': false, 'message': message};
+      } catch (_) {
+        return {'success': false, 'message': 'Login gagal'};
+      }
     } catch (e) {
+      debugPrint('Login Pasien Error: $e');
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  // ── Login Nakes (Admin) ──────────────────────────────────────────────────────────
+  Future<Map<String, dynamic>> loginNakes(String email, String password) async {
+    try {
+      final url = Uri.parse('${AppConfig.baseUrl}${AppConfig.loginNakes}');
+      debugPrint('Login Nakes to: $url');
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+
+      debugPrint('Response Status: ${response.statusCode}');
+      debugPrint('Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final token = data['token'] as String?;
+        final userData = data['data'] as Map<String, dynamic>?;
+        final message = data['message'] as String? ?? 'Login berhasil';
+
+        if (token != null && userData != null) {
+          await saveToken(token);
+          await saveUserRole('nakes');
+          return {'success': true, 'message': message, 'data': userData};
+        }
+      }
+
+      // Handle error response
+      try {
+        final data = jsonDecode(response.body);
+        final message = data['message'] as String? ?? 'Login gagal';
+        return {'success': false, 'message': message};
+      } catch (_) {
+        return {'success': false, 'message': 'Login gagal'};
+      }
+    } catch (e) {
+      debugPrint('Login Nakes Error: $e');
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
@@ -116,8 +202,8 @@ class ApiService {
     required String status,
   }) async {
     try {
-      final url = Uri.parse(
-          '${AppConfig.baseUrl}/jadwal-obat/tracking/$jadwalObatId');
+      final url =
+          Uri.parse('${AppConfig.baseUrl}/jadwal-obat/tracking/$jadwalObatId');
 
       final response = await http.put(
         url,

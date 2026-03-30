@@ -16,13 +16,14 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final _namaController       = TextEditingController();
-  final _emailController      = TextEditingController();
-  final _passwordController   = TextEditingController();
-  final _nikController        = TextEditingController();
+  final _namaController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _nikController = TextEditingController();
   final _tanggalLahirController = TextEditingController();
-  final _alamatController     = TextEditingController();
-  final _noTeleponController  = TextEditingController();
+  final _tempatLahirController = TextEditingController();
+  final _alamatController = TextEditingController();
+  final _noTeleponController = TextEditingController();
 
   String? _selectedGender;
   bool _obscurePassword = true;
@@ -34,6 +35,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _nikController.dispose();
     _tanggalLahirController.dispose();
+    _tempatLahirController.dispose();
     _alamatController.dispose();
     _noTeleponController.dispose();
     super.dispose();
@@ -79,7 +81,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     if (picked != null) {
       setState(() {
-        _tanggalLahirController.text = DateFormat('MM/dd/yyyy').format(picked);
+        // Format: YYYY-MM-DD (sesuai backend requirement)
+        _tanggalLahirController.text = DateFormat('yyyy-MM-dd').format(picked);
       });
     }
   }
@@ -100,7 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       password: _passwordController.text,
       nik: _nikController.text.trim(),
       tanggalLahir: _tanggalLahirController.text,
-      tempatLahir: '',
+      tempatLahir: _tempatLahirController.text.trim(),
       alamat: _alamatController.text.trim(),
       jenisKelamin: _selectedGender,
       noTelepon: _noTeleponController.text.trim(),
@@ -235,7 +238,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'NIK wajib diisi';
                           if (v.length != 16) return 'NIK harus tepat 16 digit';
-                          if (!RegExp(r'^\d+$').hasMatch(v)) return 'NIK hanya boleh berisi angka';
+                          if (!RegExp(r'^\d+$').hasMatch(v))
+                            return 'NIK hanya boleh berisi angka';
                           return null;
                         },
                       ),
@@ -302,14 +306,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       const SizedBox(height: 16),
 
+                      // ── Tempat Lahir ──────────────────────────────────────
+                      _label('Tempat Lahir'),
+                      TextFormField(
+                        controller: _tempatLahirController,
+                        decoration: _inputDec('Contoh: Jakarta'),
+                        validator: (v) => v == null || v.isEmpty
+                            ? 'Tempat lahir wajib diisi'
+                            : null,
+                      ),
+                      const SizedBox(height: 16),
+
                       // ── Alamat ────────────────────────────────────────────
                       _label('Alamat'),
                       TextFormField(
                         controller: _alamatController,
                         maxLines: 3,
                         decoration: _inputDec('Jalan, Kelurahan, Kecamatan'),
-                        validator: (v) =>
-                            v == null || v.isEmpty ? 'Alamat wajib diisi' : null,
+                        validator: (v) => v == null || v.isEmpty
+                            ? 'Alamat wajib diisi'
+                            : null,
                       ),
                       const SizedBox(height: 32),
 
@@ -427,11 +443,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label,
                 style: TextStyle(
                   fontSize: 14,
-                  fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.normal,
-                  color: selected
-                      ? const Color(0xFF15BE77)
-                      : Colors.grey[700],
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  color: selected ? const Color(0xFF15BE77) : Colors.grey[700],
                 ),
               ),
             ],

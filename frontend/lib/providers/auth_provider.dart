@@ -4,7 +4,7 @@ import '../services/api_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
-  
+
   Pasien? _currentUser;
   bool _isLoading = false;
   bool _isAuthenticated = false;
@@ -22,14 +22,14 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final result = await _apiService.registerPasien(pasien);
-      
+
       _isLoading = false;
-      
-      if (result['success']) {
+
+      if (result['success'] ?? false) {
         notifyListeners();
         return true;
       } else {
-        _errorMessage = result['message'];
+        _errorMessage = result['message'] as String? ?? 'Registrasi gagal';
         notifyListeners();
         return false;
       }
@@ -48,19 +48,26 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final result = await _apiService.loginPasien(email, password);
-      
+
       _isLoading = false;
-      
-      if (result['success']) {
-        _currentUser = Pasien.fromJson(result['data']['user']);
-        _isAuthenticated = true;
-        notifyListeners();
-        return true;
-      } else {
-        _errorMessage = result['message'];
-        notifyListeners();
-        return false;
+
+      if (result['success'] ?? false) {
+        final userData = result['data'] as Map<String, dynamic>?;
+        if (userData != null) {
+          _currentUser = Pasien(
+            pasienId: userData['id'] as int?,
+            nama: userData['nama'] as String? ?? '',
+            email: userData['email'] as String? ?? '',
+          );
+          _isAuthenticated = true;
+          notifyListeners();
+          return true;
+        }
       }
+
+      _errorMessage = result['message'] as String? ?? 'Login gagal';
+      notifyListeners();
+      return false;
     } catch (e) {
       _isLoading = false;
       _errorMessage = 'An error occurred: $e';
