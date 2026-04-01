@@ -6,8 +6,7 @@ import '../services/api_service.dart';
 import '../models/jadwal_obat_model.dart';
 import '../config/app_config.dart';
 import './obat_mandiri/jadwal_konsumsi_obat_mandiri.dart';
-import './obat_mandiri/tambah_jadwal_konsumsi_obat_mandiri.dart';
-import 'login_screen.dart';
+import './rutinitas_mandiri/jadwal_rutinitas_screen.dart';
 import 'login_screen.dart';
 import 'package:nauli_reminder/screens/obat_mandiri/riwayat_konsumsi_obat.dart';
 
@@ -57,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final success = await _api.updateStatusTracking(
       jadwalObatId: item.jadwalObatId,
       pasienId: _pasienId!,
-      nakesId: 1, // default, sesuaikan jika ada nakes_id dari session
+      nakesId: 1,
       status: newStatus,
     );
 
@@ -189,40 +188,42 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.push(
+                child: GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RiwayatKonsumsiObatScreen(),
+                    ),
+                  ),
+                  child: _menuCard(
+                      icon: Icons.bar_chart_rounded,
+                      iconColor: const Color(0xFF1565C0),
+                      bgColor: const Color(0xFFE3F2FD),
+                      title: 'Riwayat',
+                      subtitle: 'Kepatuhan Minum'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // ✅ DIPERBAIKI: mengarah ke RutinitasSehatScreen
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const RiwayatKonsumsiObatScreen(),
+                        builder: (_) => const RutinitasSehatScreen(),
                       ),
-                    ),
-                    child: _menuCard(
-                        icon: Icons.bar_chart_rounded,
-                        iconColor: const Color(0xFF1565C0),
-                        bgColor: const Color(0xFFE3F2FD),
-                        title: 'Riwayat',
-                        subtitle: 'Kepatuhan Minum'),
-                  )),
-              const SizedBox(width: 12),
-Expanded(
-  child: GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const JadwalKonsumsiObatMandiri(),
-        ),
-      );
-    },
-    child: _menuCard(
-      icon: Icons.fitness_center,
-      iconColor: const Color(0xFFE91E8C),
-      bgColor: const Color(0xFFFCE4EC),
-      title: 'Rutinitas Sehat',
-      subtitle: 'Jadwal Aktivitas',
-    ),
-  ),
-),
+                    );
+                  },
+                  child: _menuCard(
+                    icon: Icons.fitness_center,
+                    iconColor: const Color(0xFFE91E8C),
+                    bgColor: const Color(0xFFFCE4EC),
+                    title: 'Rutinitas Sehat',
+                    subtitle: 'Jadwal Aktivitas',
+                  ),
+                ),
+              ),
             ],
           ),
         ],
@@ -319,7 +320,12 @@ Expanded(
           color: active ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(6),
           boxShadow: active
-              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4, offset: const Offset(0, 1))]
+              ? [
+                  BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1))
+                ]
               : [],
         ),
         child: Text(label,
@@ -420,7 +426,21 @@ Expanded(
   }
 
   String _bulanTahun(DateTime dt) {
-    const bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const bulan = [
+      '',
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember'
+    ];
     return '${bulan[dt.month]} ${dt.year}';
   }
 
@@ -452,14 +472,12 @@ Expanded(
   }
 
   Widget _buildJadwalCard(JadwalObatItem item) {
-    // Jadwal yang sudah lewat jam tapi belum diminum → highlight merah
     final jamParts = item.jamMinum.split(':');
     final jadwalDt = DateTime.now().copyWith(
       hour: int.tryParse(jamParts.isNotEmpty ? jamParts[0] : '0') ?? 0,
       minute: int.tryParse(jamParts.length > 1 ? jamParts[1] : '0') ?? 0,
     );
-    final isLate =
-        jadwalDt.isBefore(DateTime.now()) && !item.isDone;
+    final isLate = jadwalDt.isBefore(DateTime.now()) && !item.isDone;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -476,7 +494,7 @@ Expanded(
           SizedBox(
             width: 52,
             child: Text(
-              item.jamMinum.substring(0, 5), // HH:MM
+              item.jamMinum.substring(0, 5),
               style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -567,29 +585,33 @@ Expanded(
                 color: Color(0xFF15BE77),
                 shape: BoxShape.circle,
                 boxShadow: [
-                  BoxShadow(color: Color(0x4015BE77), blurRadius: 12, offset: Offset(0, 4))
+                  BoxShadow(
+                      color: Color(0x4015BE77),
+                      blurRadius: 12,
+                      offset: Offset(0, 4))
                 ],
               ),
               child: const Icon(Icons.add, color: Colors.white, size: 28),
             ),
           ),
+          // ✅ DIPERBAIKI: mengarah ke RutinitasSehatScreen
           GestureDetector(
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const JadwalKonsumsiObatMandiri(),
-      ),
-    );
-  },
-  child: Icon(
-    Icons.directions_run_rounded,
-    color: _selectedNav == 2
-        ? const Color(0xFF15BE77)
-        : Colors.grey[400],
-    size: 26,
-  ),
-),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const RutinitasSehatScreen(),
+                ),
+              );
+            },
+            child: Icon(
+              Icons.directions_run_rounded,
+              color: _selectedNav == 2
+                  ? const Color(0xFF15BE77)
+                  : Colors.grey[400],
+              size: 26,
+            ),
+          ),
           GestureDetector(
             onTap: () async {
               await auth.logout();
