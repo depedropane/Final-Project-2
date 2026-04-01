@@ -8,6 +8,8 @@ import '../config/app_config.dart';
 import './obat_mandiri/jadwal_konsumsi_obat_mandiri.dart';
 import './obat_mandiri/tambah_jadwal_konsumsi_obat_mandiri.dart';
 import 'login_screen.dart';
+import 'login_screen.dart';
+import 'package:nauli_reminder/screens/obat_mandiri/riwayat_konsumsi_obat.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -187,12 +189,20 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             children: [
               Expanded(
-                  child: _menuCard(
-                      icon: Icons.bar_chart_rounded,
-                      iconColor: const Color(0xFF1565C0),
-                      bgColor: const Color(0xFFE3F2FD),
-                      title: 'Riwayat',
-                      subtitle: 'Kepatuhan Minum')),
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const RiwayatKonsumsiObatScreen(),
+                      ),
+                    ),
+                    child: _menuCard(
+                        icon: Icons.bar_chart_rounded,
+                        iconColor: const Color(0xFF1565C0),
+                        bgColor: const Color(0xFFE3F2FD),
+                        title: 'Riwayat',
+                        subtitle: 'Kepatuhan Minum'),
+                  )),
               const SizedBox(width: 12),
 Expanded(
   child: GestureDetector(
