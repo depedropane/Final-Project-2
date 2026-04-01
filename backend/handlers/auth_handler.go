@@ -1,13 +1,10 @@
 package handlers
 
 import (
-	"golang-app/database"
-	"golang-app/models"
-	"golang-app/utils"
+	"golang-app/services"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type LoginRequest struct {
@@ -22,8 +19,16 @@ type LoginResponse struct {
 	Data    any    `json:"data,omitempty"`
 }
 
+type AuthHandler struct {
+	authService *services.AuthService
+}
+
+func NewAuthHandler(authService *services.AuthService) *AuthHandler {
+	return &AuthHandler{authService: authService}
+}
+
 // LoginPasien - POST /api/v1/auth/pasien/login
-func LoginPasien(c *gin.Context) {
+func (h *AuthHandler) LoginPasien(c *gin.Context) {
 	var input LoginRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, LoginResponse{
@@ -33,30 +38,11 @@ func LoginPasien(c *gin.Context) {
 		return
 	}
 
-	var pasien models.Pasien
-	if err := database.DB.Where("email = ?", input.Email).First(&pasien).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, LoginResponse{
-			Success: false,
-			Message: "Email atau password salah",
-		})
-		return
-	}
-
-	// Validasi password
-	if err := bcrypt.CompareHashAndPassword([]byte(pasien.Password), []byte(input.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, LoginResponse{
-			Success: false,
-			Message: "Email atau password salah",
-		})
-		return
-	}
-
-	// Generate token
-	token, err := utils.GenerateToken(pasien.PasienID, "pasien", pasien.Nama)
+	token, pasienID, nama, err := h.authService.LoginPasien(input.Email, input.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, LoginResponse{
+		c.JSON(http.StatusUnauthorized, LoginResponse{
 			Success: false,
-			Message: "Gagal generate token",
+			Message: err.Error(),
 		})
 		return
 	}
@@ -66,16 +52,16 @@ func LoginPasien(c *gin.Context) {
 		Message: "Login berhasil",
 		Token:   token,
 		Data: gin.H{
-			"id":    pasien.PasienID,
-			"nama":  pasien.Nama,
-			"email": pasien.Email,
+			"id":    pasienID,
+			"nama":  nama,
+			"email": input.Email,
 			"role":  "pasien",
 		},
 	})
 }
 
 // LoginNakes - POST /api/v1/auth/nakes/login
-func LoginNakes(c *gin.Context) {
+func (h *AuthHandler) LoginNakes(c *gin.Context) {
 	var input LoginRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, LoginResponse{
@@ -85,30 +71,11 @@ func LoginNakes(c *gin.Context) {
 		return
 	}
 
-	var nakes models.Nakes
-	if err := database.DB.Where("email = ?", input.Email).First(&nakes).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, LoginResponse{
-			Success: false,
-			Message: "Email atau password salah",
-		})
-		return
-	}
-
-	// Validasi password
-	if err := bcrypt.CompareHashAndPassword([]byte(nakes.Password), []byte(input.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, LoginResponse{
-			Success: false,
-			Message: "Email atau password salah",
-		})
-		return
-	}
-
-	// Generate token
-	token, err := utils.GenerateToken(nakes.NakesID, "nakes", nakes.Nama)
+	token, nakesID, nama, err := h.authService.LoginNakes(input.Email, input.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, LoginResponse{
+		c.JSON(http.StatusUnauthorized, LoginResponse{
 			Success: false,
-			Message: "Gagal generate token",
+			Message: err.Error(),
 		})
 		return
 	}
@@ -118,9 +85,9 @@ func LoginNakes(c *gin.Context) {
 		Message: "Login berhasil",
 		Token:   token,
 		Data: gin.H{
-			"id":    nakes.NakesID,
-			"nama":  nakes.Nama,
-			"email": nakes.Email,
+			"id":    nakesID,
+			"nama":  nama,
+			"email": input.Email,
 			"role":  "nakes",
 		},
 	})

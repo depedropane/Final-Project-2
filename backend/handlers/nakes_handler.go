@@ -1,17 +1,24 @@
 package handlers
 
 import (
-	"golang-app/database"
 	"golang-app/models"
+	"golang-app/services"
 	"net/http"
 	"unicode"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
+type NakesHandler struct {
+	nakesService *services.NakesService
+}
+
+func NewNakesHandler(nakesService *services.NakesService) *NakesHandler {
+	return &NakesHandler{nakesService: nakesService}
+}
+
 // POST /api/v1/nakes/register
-func RegisterNakes(c *gin.Context) {
+func (h *NakesHandler) RegisterNakes(c *gin.Context) {
 	var input struct {
 		Nama         string `json:"nama"`
 		Email        string `json:"email"`
@@ -58,30 +65,17 @@ func RegisterNakes(c *gin.Context) {
 		return
 	}
 
-	// ── Cek duplikat email & NIK ──────────────────────────────────────────────
-	var existing models.Nakes
-	if err := database.DB.Where("email = ?", input.Email).First(&existing).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{"success": false, "message": "Email sudah terdaftar"})
-		return
-	}
-	if err := database.DB.Where("nik = ?", input.Nik).First(&existing).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{"success": false, "message": "NIK sudah terdaftar"})
-		return
-	}
-
-	// ── Hash password & simpan ────────────────────────────────────────────────
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-
-	nakes := models.Nakes{
+	// ── Buat nakes baru ──────────────────────────────────────────────────────
+	nakes := &models.Nakes{
 		Nama:         input.Nama,
 		Email:        input.Email,
-		Password:     string(hashedPassword),
+		Password:     input.Password,
 		Nik:          input.Nik,
 		JenisKelamin: input.JenisKelamin,
 		Alamat:       input.Alamat,
 	}
 
-	if err := database.DB.Create(&nakes).Error; err != nil {
+	if err := h.nakesService.CreateNakes(nakes); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"message": "Gagal simpan database",
@@ -94,9 +88,9 @@ func RegisterNakes(c *gin.Context) {
 }
 
 // GET /api/v1/nakes
-func GetNakes(c *gin.Context) {
-	var nakes []models.Nakes
-	if err := database.DB.Find(&nakes).Error; err != nil {
+func (h *NakesHandler) GetNakes(c *gin.Context) {
+	nakes, err := h.nakesService.GetAllNakes()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": err.Error()})
 		return
 	}

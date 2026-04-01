@@ -1,26 +1,37 @@
 package handlers
 
 import (
-	"golang-app/database"
 	"golang-app/models"
+	"golang-app/services"
 	"net/http"
 	"time"
 	"unicode"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 )
 
-func GetPasien(c *gin.Context) {
-	var pasien []models.Pasien
-	if err := database.DB.Find(&pasien).Error; err != nil {
+type PasienHandler struct {
+	pasienService *services.PasienService
+	jadwalService *services.JadwalService
+}
+
+func NewPasienHandler(pasienService *services.PasienService, jadwalService *services.JadwalService) *PasienHandler {
+	return &PasienHandler{
+		pasienService: pasienService,
+		jadwalService: jadwalService,
+	}
+}
+
+func (h *PasienHandler) GetPasien(c *gin.Context) {
+	pasien, err := h.pasienService.GetAllPasien()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "success", "data": pasien})
 }
 
-func RegisterPasien(c *gin.Context) {
+func (h *PasienHandler) RegisterPasien(c *gin.Context) {
 	var input struct {
 		Nama         string `json:"nama"`
 		Email        string `json:"email"`
@@ -83,24 +94,11 @@ func RegisterPasien(c *gin.Context) {
 		return
 	}
 
-	// ── Cek duplikat email & NIK ──────────────────────────────────────────────
-	var existing models.Pasien
-	if err := database.DB.Where("email = ?", input.Email).First(&existing).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{"success": false, "message": "Email sudah terdaftar"})
-		return
-	}
-	if err := database.DB.Where("nik = ?", input.Nik).First(&existing).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{"success": false, "message": "NIK sudah terdaftar"})
-		return
-	}
-
-	// ── Hash password & simpan ────────────────────────────────────────────────
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-
-	pasien := models.Pasien{
+	// ── Buat pasien baru ──────────────────────────────────────────────────────
+	pasien := &models.Pasien{
 		Nama:         input.Nama,
 		Email:        input.Email,
-		Password:     string(hashedPassword),
+		Password:     input.Password,
 		Nik:          input.Nik,
 		TanggalLahir: tglLahir,
 		TempatLahir:  input.TempatLahir,
@@ -109,7 +107,7 @@ func RegisterPasien(c *gin.Context) {
 		NoTelepon:    input.NoTelepon,
 	}
 
-	if err := database.DB.Create(&pasien).Error; err != nil {
+	if err := h.pasienService.CreatePasien(pasien); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"success": false,
 			"message": "Gagal simpan database",
@@ -119,4 +117,26 @@ func RegisterPasien(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"success": true, "message": "Registrasi berhasil", "data": pasien})
+}
+
+func (h *PasienHandler) GetPasienJadwal(c *gin.Context) {
+	// Ambil pasien ID dari claims (sudah di validasi oleh middleware)
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	// Cast claims untuk mendapatkan ID
+	claimsMap := claims.(map[string]interface{})
+	pasienIDFloat := claimsMap["id"].(float64)
+	pasienID := uint(pasienIDFloat)
+
+	jadwal, err := h.jadwalService.GetJadwalByPasienID(pasienID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "success", "data": jadwal})
 }

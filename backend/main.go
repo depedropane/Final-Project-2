@@ -1,24 +1,39 @@
 package main
 
 import (
-    "golang-app/database"
-    "golang-app/routes"
-    "golang-app/models"
-    "os"
+	"golang-app/database"
+	"golang-app/models"
+	"golang-app/repositories"
+	"golang-app/routes"
+	"golang-app/services"
+	"os"
 )
 
 func main() {
-    // 1. Koneksi DB
-    database.ConnectDatabase()
+	// 1. Koneksi DB
+	database.ConnectDatabase()
 
-    // 2. Auto Migration 
-    database.DB.AutoMigrate(&models.Pasien{}, &models.Nakes{})
+	// 2. Auto Migration
+	database.DB.AutoMigrate(&models.Pasien{}, &models.Nakes{}, &models.Jadwal{})
 
-    // 3. Setup Routes
-    r := routes.SetupRoutes()
+	// 3. Initialize Repositories
+	pasienRepo := repositories.NewPasienRepository()
+	nakesRepo := repositories.NewNakesRepository()
+	jadwalRepo := repositories.NewJadwalRepository()
 
-    // 4. Run Server
-    port := os.Getenv("PORT")
-    if port == "" { port = "8080" }
-    r.Run(":" + port)
+	// 4. Initialize Services
+	authService := services.NewAuthService(pasienRepo, nakesRepo)
+	pasienService := services.NewPasienService(pasienRepo)
+	nakesService := services.NewNakesService(nakesRepo)
+	jadwalService := services.NewJadwalService(jadwalRepo)
+
+	// 5. Setup Routes with Services
+	r := routes.SetupRoutes(authService, pasienService, nakesService, jadwalService)
+
+	// 6. Run Server
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	r.Run(":" + port)
 }

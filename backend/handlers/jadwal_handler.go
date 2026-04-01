@@ -1,25 +1,34 @@
 package handlers
 
 import (
-	"golang-app/database"
 	"golang-app/models"
+	"golang-app/services"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-// GET ALL
-func GetJadwal(c *gin.Context) {
-	var jadwal []models.Jadwal
-	database.DB.Find(&jadwal)
+type JadwalHandler struct {
+	jadwalService *services.JadwalService
+}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data": jadwal,
-	})
+func NewJadwalHandler(jadwalService *services.JadwalService) *JadwalHandler {
+	return &JadwalHandler{jadwalService: jadwalService}
+}
+
+// GET ALL
+func (h *JadwalHandler) GetJadwal(c *gin.Context) {
+	jadwal, err := h.jadwalService.GetAllJadwal()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"data": jadwal})
 }
 
 // CREATE
-func CreateJadwal(c *gin.Context) {
+func (h *JadwalHandler) CreateJadwal(c *gin.Context) {
 	var jadwal models.Jadwal
 
 	if err := c.ShouldBindJSON(&jadwal); err != nil {
@@ -27,9 +36,10 @@ func CreateJadwal(c *gin.Context) {
 		return
 	}
 
-	jadwal.Status = "active"
-
-	database.DB.Create(&jadwal)
+	if err := h.jadwalService.CreateJadwal(&jadwal); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Jadwal berhasil dibuat",
@@ -38,10 +48,14 @@ func CreateJadwal(c *gin.Context) {
 }
 
 // DELETE
-func DeleteJadwal(c *gin.Context) {
+func (h *JadwalHandler) DeleteJadwal(c *gin.Context) {
 	id := c.Param("id")
+	jadwalID, _ := strconv.ParseUint(id, 10, 32)
 
-	database.DB.Delete(&models.Jadwal{}, id)
+	if err := h.jadwalService.DeleteJadwal(uint(jadwalID)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Jadwal berhasil dihapus",
