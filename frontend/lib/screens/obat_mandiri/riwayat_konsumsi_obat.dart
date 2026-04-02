@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/riwayat_konsumsi_service.dart';
+import '../../services/api_service.dart';
 
 // ─── MODEL ───────────────────────────────────────────────────────────────────
 
@@ -48,6 +48,8 @@ class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen> {
   int _takenDoses = 0;
   int _totalDoses = 0;
 
+  final ApiService _api = ApiService();
+
   @override
   void initState() {
     super.initState();
@@ -59,12 +61,10 @@ class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen> {
       setState(() => _isLoading = true);
 
       // Get riwayat dari API
-      final riwayatList =
-          await RiwayatKonsumsiService.getRiwayatByPasien(widget.pasienId);
+      final riwayatList = await _api.getRiwayatByPasien(widget.pasienId);
 
       // Get compliance stats
-      final statsResponse =
-          await RiwayatKonsumsiService.getComplianceStats(widget.pasienId);
+      final statsResponse = await _api.getComplianceStats(widget.pasienId);
       final takenDoses = statsResponse['taken_doses'] ?? 0;
       final totalDoses = statsResponse['total_doses'] ?? 0;
 
