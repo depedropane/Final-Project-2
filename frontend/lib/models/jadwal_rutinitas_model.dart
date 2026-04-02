@@ -1,10 +1,10 @@
 class JadwalRutinitasItem {
-  int jadwalRutinitasId;
-  String namaAktivitas;
-  String jamMulai;
-  String jamSelesai;
-  List<String> pengulangan;
-  String status;
+  final int jadwalRutinitasId;
+  final String namaAktivitas;
+  final String jamMulai;
+  final String jamSelesai;
+  final List<String> pengulangan;
+  final String status;
 
   JadwalRutinitasItem({
     required this.jadwalRutinitasId,

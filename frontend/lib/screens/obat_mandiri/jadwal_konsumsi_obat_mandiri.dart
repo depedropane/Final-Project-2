@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import './tambah_jadwal_konsumsi_obat_mandiri.dart';
-import '../rutinitas_mandiri/jadwal_rutinitas_screen.dart';
 
 
 class JadwalKonsumsiObatMandiri extends StatefulWidget {
