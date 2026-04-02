@@ -47,6 +47,27 @@ func (h *JadwalHandler) CreateJadwal(c *gin.Context) {
 	})
 }
 
+// UPDATE
+func (h *JadwalHandler) UpdateJadwal(c *gin.Context) {
+	id := c.Param("id")
+	jadwalID, _ := strconv.ParseUint(id, 10, 32)
+
+	var jadwal models.Jadwal
+	if err := c.ShouldBindJSON(&jadwal); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.jadwalService.UpdateJadwal(uint(jadwalID), &jadwal); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Jadwal berhasil diupdate",
+	})
+}
+
 // DELETE
 func (h *JadwalHandler) DeleteJadwal(c *gin.Context) {
 	id := c.Param("id")

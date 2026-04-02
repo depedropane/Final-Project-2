@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
 
-class TambahJadwalKonsumsi extends StatefulWidget {
-  final Map<String, dynamic>? data; // ✅ untuk EDIT
+class EditJadwalKonsumsi extends StatefulWidget {
+  final Map<String, dynamic> data; // ✅ WAJIB untuk edit
 
-  const TambahJadwalKonsumsi({super.key, this.data});
+  const EditJadwalKonsumsi({super.key, required this.data});
 
   @override
-  State<TambahJadwalKonsumsi> createState() =>
-      _TambahJadwalKonsumsiState();
+  State<EditJadwalKonsumsi> createState() =>
+      _EditJadwalKonsumsiState();
 }
 
-class _TambahJadwalKonsumsiState extends State<TambahJadwalKonsumsi> {
+class _EditJadwalKonsumsiState extends State<EditJadwalKonsumsi> {
   String selectedWaktu = "Pagi";
   String selectedFrekuensi = "Setiap Hari";
   String selectedDurasi = "7 Hari";
 
-  // ✅ CONTROLLER
   final TextEditingController namaController = TextEditingController();
   final TextEditingController dosisController = TextEditingController();
 
@@ -23,12 +22,12 @@ class _TambahJadwalKonsumsiState extends State<TambahJadwalKonsumsi> {
   void initState() {
     super.initState();
 
-    // ✅ MODE EDIT
-    if (widget.data != null) {
-      namaController.text = widget.data!['nama'] ?? '';
-      dosisController.text = widget.data!['dosis'] ?? '';
-      selectedWaktu = widget.data!['waktu'] ?? "Pagi";
-    }
+    // ✅ LOAD DATA DARI LIST
+    namaController.text = widget.data['nama'] ?? '';
+    dosisController.text = widget.data['dosis'] ?? '';
+    selectedWaktu = widget.data['waktu'] ?? "Pagi";
+    selectedFrekuensi = widget.data['frekuensi'] ?? "Setiap Hari";
+    selectedDurasi = widget.data['durasi'] ?? "7 Hari";
   }
 
   @override
@@ -38,9 +37,9 @@ class _TambahJadwalKonsumsiState extends State<TambahJadwalKonsumsi> {
     super.dispose();
   }
 
-  void simpanData() {
+  void updateData() {
     final result = {
-      "id": widget.data?['id'] ?? DateTime.now().millisecondsSinceEpoch,
+      "id": widget.data['id'],
       "nama": namaController.text,
       "dosis": dosisController.text,
       "waktu": selectedWaktu,
@@ -48,27 +47,21 @@ class _TambahJadwalKonsumsiState extends State<TambahJadwalKonsumsi> {
       "durasi": selectedDurasi,
     };
 
-    Navigator.pop(context, result); // ✅ kirim balik ke halaman sebelumnya
+    Navigator.pop(context, result); // ✅ kirim balik
   }
 
   @override
   Widget build(BuildContext context) {
-    final isEdit = widget.data != null;
-
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        title: const Text("Edit Jadwal"),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
           child: const Icon(Icons.arrow_back, color: Colors.black),
-        ),
-        centerTitle: true,
-        title: Text(
-          isEdit ? "Edit Jadwal" : "Tambah Jadwal",
-          style: const TextStyle(
-              color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -76,47 +69,18 @@ class _TambahJadwalKonsumsiState extends State<TambahJadwalKonsumsi> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // TAB
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                tabItem("Obat", true),
-                const SizedBox(width: 40),
-                tabItem("Rutinitas", false),
-              ],
-            ),
-
-            const SizedBox(height: 20),
 
             // NAMA
             const Text("Nama Obat"),
             const SizedBox(height: 5),
-            textField("Contoh: Paracetamol", controller: namaController),
+            textField("Contoh: Paracetamol", namaController),
 
             const SizedBox(height: 15),
 
             // DOSIS
             const Text("Dosis"),
             const SizedBox(height: 5),
-            textField("Contoh: 500mg", controller: dosisController),
-
-            const SizedBox(height: 15),
-
-            // FOTO
-            const Text("Foto Obat (Opsional)"),
-            const SizedBox(height: 5),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              height: 50,
-              decoration: boxDecoration(),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text("Upload foto"),
-                  Icon(Icons.camera_alt_outlined)
-                ],
-              ),
-            ),
+            textField("Contoh: 500mg", dosisController),
 
             const SizedBox(height: 20),
 
@@ -125,7 +89,6 @@ class _TambahJadwalKonsumsiState extends State<TambahJadwalKonsumsi> {
             const SizedBox(height: 10),
             Wrap(
               spacing: 10,
-              runSpacing: 10,
               children: [
                 waktuButton("Pagi"),
                 waktuButton("Siang"),
@@ -161,20 +124,20 @@ class _TambahJadwalKonsumsiState extends State<TambahJadwalKonsumsi> {
 
             const SizedBox(height: 30),
 
-            // BUTTON
+            // BUTTON UPDATE
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: simpanData,
-                child: Text(
-                  isEdit ? "Update Jadwal" : "Simpan Jadwal",
-                  style: const TextStyle(
+                onPressed: updateData,
+                child: const Text(
+                  "Update Jadwal",
+                  style: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -187,29 +150,9 @@ class _TambahJadwalKonsumsiState extends State<TambahJadwalKonsumsi> {
 
   // ================= COMPONENT =================
 
-  Widget tabItem(String text, bool active) {
-    return Column(
-      children: [
-        Text(
-          text,
-          style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: active ? Colors.green : Colors.grey),
-        ),
-        const SizedBox(height: 5),
-        if (active)
-          Container(
-            height: 3,
-            width: 40,
-            color: Colors.green,
-          )
-      ],
-    );
-  }
-
-  Widget textField(String hint, {required TextEditingController controller}) {
+  Widget textField(String hint, TextEditingController controller) {
     return TextField(
-      controller: controller, // ✅ penting
+      controller: controller,
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
@@ -227,9 +170,7 @@ class _TambahJadwalKonsumsiState extends State<TambahJadwalKonsumsi> {
     bool isSelected = selectedWaktu == label;
 
     return GestureDetector(
-      onTap: () {
-        setState(() => selectedWaktu = label);
-      },
+      onTap: () => setState(() => selectedWaktu = label),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
         decoration: BoxDecoration(

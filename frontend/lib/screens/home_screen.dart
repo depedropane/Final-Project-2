@@ -5,7 +5,6 @@ import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../models/jadwal_obat_model.dart';
 import '../config/app_config.dart';
-import './obat_mandiri/jadwal_konsumsi_obat_mandiri.dart';
 import './rutinitas_mandiri/jadwal_rutinitas_screen.dart';
 import 'login_screen.dart';
 import 'package:nauli_reminder/screens/obat_mandiri/riwayat_konsumsi_obat.dart';
@@ -21,7 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedNav = 0;
   bool _isWeekView = true;
   DateTime _selectedDate = DateTime.now();
-  DateTime _focusedMonth = DateTime.now();
+  final DateTime _focusedMonth = DateTime.now();
 
   final ApiService _api = ApiService();
   List<JadwalObatItem> _jadwalList = [];
