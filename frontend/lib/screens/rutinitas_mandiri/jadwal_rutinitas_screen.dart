@@ -48,7 +48,6 @@ class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
     ),
   ];
 
-  bool _isLoading = false;
   final int _streakHari = 12;
 
   @override
@@ -63,19 +62,36 @@ class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
   }
 
   Future<void> _refresh() async {
-    setState(() => _isLoading = true);
     await _loadPasienId();
     await Future.delayed(const Duration(milliseconds: 500));
-    setState(() => _isLoading = false);
-  }
-
-  void _hapusJadwal(JadwalRutinitasItem item) {
-    setState(() => _jadwalList.remove(item));
   }
 
   String _hariIni() {
-    const hari = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-    const bulan = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const hari = [
+      '',
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu'
+    ];
+    const bulan = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des'
+    ];
     final now = DateTime.now();
     return '${hari[now.weekday]}, ${now.day} ${bulan[now.month]}';
   }
@@ -158,14 +174,13 @@ class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("🏆 STREAK KAMU!", style: TextStyle(color: Colors.white70)),
+          const Text("🏆 STREAK KAMU!",
+              style: TextStyle(color: Colors.white70)),
           const SizedBox(height: 6),
           Text(
             "$_streakHari Hari",
             style: const TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: Colors.white),
+                fontSize: 26, fontWeight: FontWeight.bold, color: Colors.white),
           ),
         ],
       ),

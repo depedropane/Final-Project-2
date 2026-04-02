@@ -20,16 +20,15 @@ func main() {
 	pasienRepo := repositories.NewPasienRepository()
 	nakesRepo := repositories.NewNakesRepository()
 	jadwalRepo := repositories.NewJadwalRepository()
-
+	trackingRiwayatRepo := repositories.NewTrackingRiwayatRepository()
 	// 4. Initialize Services
 	authService := services.NewAuthService(pasienRepo, nakesRepo)
 	pasienService := services.NewPasienService(pasienRepo)
 	nakesService := services.NewNakesService(nakesRepo)
 	jadwalService := services.NewJadwalService(jadwalRepo)
-
+	trackingRiwayatService := services.NewTrackingRiwayatService(trackingRiwayatRepo)
 	// 5. Setup Routes with Services
-	r := routes.SetupRoutes(authService, pasienService, nakesService, jadwalService)
-
+	r := routes.SetupRoutes(authService, pasienService, nakesService, jadwalService, trackingRiwayatService)
 	// 6. Run Server
 	port := os.Getenv("PORT")
 	if port == "" {

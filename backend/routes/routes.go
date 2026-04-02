@@ -13,6 +13,7 @@ func SetupRoutes(
 	pasienService *services.PasienService,
 	nakesService *services.NakesService,
 	jadwalService *services.JadwalService,
+	trackingRiwayatService *services.TrackingRiwayatService,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -32,6 +33,9 @@ func SetupRoutes(
 
 		// ── Jadwal Routes (public) ────────────────────────────────────────────
 		setupJadwalRoutes(api, jadwalService)
+
+		// ── Tracking Riwayat Routes ───────────────────────────────────────────
+		setupTrackingRiwayatRoutes(api, trackingRiwayatService)
 
 		// ── Admin Routes (protected: Nakes only) ───────────────────────────────
 		setupAdminRoutes(api, pasienService, jadwalService)
@@ -101,6 +105,20 @@ func setupAdminRoutes(api *gin.RouterGroup, pasienService *services.PasienServic
 		admin.POST("/jadwal", adminHandler.AdminCreateJadwal)
 		admin.PUT("/jadwal/:id", adminHandler.AdminUpdateJadwal)
 		admin.DELETE("/jadwal/:id", adminHandler.AdminDeleteJadwal)
+	}
+}
+
+// ─── Tracking Riwayat Routes ───────────────────────────────────────────────
+func setupTrackingRiwayatRoutes(api *gin.RouterGroup, trackingRiwayatService *services.TrackingRiwayatService) {
+	trackingHandler := handlers.NewTrackingRiwayatHandler(trackingRiwayatService)
+	tracking := api.Group("/riwayat")
+	{
+		tracking.GET("/pasien/:pasien_id", trackingHandler.GetByPasien)
+		tracking.GET("/pasien/:pasien_id/date-range", trackingHandler.GetByDateRange)
+		tracking.GET("/compliance/:pasien_id", trackingHandler.GetComplianceStats)
+		tracking.POST("", trackingHandler.Create)
+		tracking.PUT("/:id", trackingHandler.Update)
+		tracking.DELETE("/:id", trackingHandler.Delete)
 	}
 }
 

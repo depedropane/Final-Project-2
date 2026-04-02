@@ -191,7 +191,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const RiwayatKonsumsiObatScreen(),
+                      builder: (_) =>
+                          RiwayatKonsumsiObatScreen(pasienId: _pasienId ?? 1),
                     ),
                   ),
                   child: _menuCard(
@@ -239,8 +240,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration:
-          BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+          color: bgColor, borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -365,8 +366,8 @@ class _HomeScreenState extends State<HomeScreen> {
       cells.add(const SizedBox(width: 32, height: 36));
     }
     for (int d = 1; d <= daysInMonth; d++) {
-      final isSelected = d == _selectedDate.day &&
-          _focusedMonth.month == _selectedDate.month;
+      final isSelected =
+          d == _selectedDate.day && _focusedMonth.month == _selectedDate.month;
       final isToday = d == now.day &&
           _focusedMonth.month == now.month &&
           _focusedMonth.year == now.year;
@@ -508,8 +509,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item.dosis,
-                    style:
-                        TextStyle(fontSize: 11, color: Colors.grey[500])),
+                    style: TextStyle(fontSize: 11, color: Colors.grey[500])),
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -517,8 +517,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 10,
                         height: 10,
                         decoration: const BoxDecoration(
-                            color: Color(0xFF9C27B0),
-                            shape: BoxShape.circle)),
+                            color: Color(0xFF9C27B0), shape: BoxShape.circle)),
                     const SizedBox(width: 4),
                     Text(item.namaObat,
                         style: const TextStyle(
@@ -534,14 +533,11 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 26,
               height: 26,
               decoration: BoxDecoration(
-                color: item.isDone
-                    ? const Color(0xFF15BE77)
-                    : Colors.white,
+                color: item.isDone ? const Color(0xFF15BE77) : Colors.white,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: item.isDone
-                      ? const Color(0xFF15BE77)
-                      : Colors.grey[300]!,
+                  color:
+                      item.isDone ? const Color(0xFF15BE77) : Colors.grey[300]!,
                   width: 1.5,
                 ),
               ),
