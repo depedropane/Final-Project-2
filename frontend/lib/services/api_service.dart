@@ -6,6 +6,45 @@ import '../models/pasien_model.dart';
 import '../models/jadwal_obat_model.dart';
 import 'package:flutter/foundation.dart';
 
+// ─── Riwayat Konsumsi Obat Model ──────────────────────────────────────────────
+class RiwayatKonsumsiObat {
+  final int trackingId;
+  final int jadwalId;
+  final int pasienId;
+  final DateTime tanggal;
+  final String status; // "taken" atau "missed"
+  final String waktu;
+
+  RiwayatKonsumsiObat({
+    required this.trackingId,
+    required this.jadwalId,
+    required this.pasienId,
+    required this.tanggal,
+    required this.status,
+    required this.waktu,
+  });
+
+  factory RiwayatKonsumsiObat.fromJson(Map<String, dynamic> json) {
+    return RiwayatKonsumsiObat(
+      trackingId: json['tracking_id'] ?? 0,
+      jadwalId: json['jadwal_id'] ?? 0,
+      pasienId: json['pasien_id'] ?? 0,
+      tanggal: DateTime.parse(json['tanggal'] ?? DateTime.now().toString()),
+      status: json['status'] ?? 'missed',
+      waktu: json['waktu'] ?? '00:00',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'tracking_id': trackingId,
+        'jadwal_id': jadwalId,
+        'pasien_id': pasienId,
+        'tanggal': tanggal.toIso8601String(),
+        'status': status,
+        'waktu': waktu,
+      };
+}
+
 class ApiService {
   // ── Token helpers ────────────────────────────────────────────────────────────
   Future<String?> getToken() async {
@@ -218,6 +257,114 @@ class ApiService {
       return response.statusCode == 200;
     } catch (e) {
       debugPrint('Error updateTracking: $e');
+      return false;
+    }
+  }
+
+  // ── Riwayat Konsumsi ──────────────────────────────────────────────────────────
+  // GET /api/v1/riwayat/pasien/:pasien_id
+  Future<List<RiwayatKonsumsiObat>> getRiwayatByPasien(int pasienId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/riwayat/pasien/$pasienId'),
+      );
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final List<dynamic> data = json['data'] ?? [];
+        return data.map((item) => RiwayatKonsumsiObat.fromJson(item)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getRiwayatByPasien: $e');
+      return [];
+    }
+  }
+
+  // GET /api/v1/riwayat/pasien/:pasien_id/date-range
+  Future<List<RiwayatKonsumsiObat>> getRiwayatByDateRange(
+    int pasienId,
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    try {
+      final startStr = startDate.toString().split(' ')[0];
+      final endStr = endDate.toString().split(' ')[0];
+      final response = await http.get(
+        Uri.parse(
+            '${AppConfig.baseUrl}/riwayat/pasien/$pasienId/date-range?start_date=$startStr&end_date=$endStr'),
+      );
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final List<dynamic> data = json['data'] ?? [];
+        return data.map((item) => RiwayatKonsumsiObat.fromJson(item)).toList();
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getRiwayatByDateRange: $e');
+      return [];
+    }
+  }
+
+  // GET /api/v1/riwayat/compliance/:pasien_id
+  Future<Map<String, dynamic>> getComplianceStats(int pasienId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/riwayat/compliance/$pasienId'),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return {'taken_doses': 0, 'total_doses': 0, 'percentage': 0};
+    } catch (e) {
+      debugPrint('Error getComplianceStats: $e');
+      return {'taken_doses': 0, 'total_doses': 0, 'percentage': 0};
+    }
+  }
+
+  // POST /api/v1/riwayat
+  Future<RiwayatKonsumsiObat?> createRiwayat(
+      RiwayatKonsumsiObat riwayat) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/riwayat'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(riwayat.toJson()),
+      );
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return RiwayatKonsumsiObat.fromJson(json['data']);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error createRiwayat: $e');
+      return null;
+    }
+  }
+
+  // PUT /api/v1/riwayat/:id
+  Future<bool> updateRiwayat(int id, RiwayatKonsumsiObat riwayat) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${AppConfig.baseUrl}/riwayat/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(riwayat.toJson()),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error updateRiwayat: $e');
+      return false;
+    }
+  }
+
+  // DELETE /api/v1/riwayat/:id
+  Future<bool> deleteRiwayat(int id) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('${AppConfig.baseUrl}/riwayat/$id'),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error deleteRiwayat: $e');
       return false;
     }
   }

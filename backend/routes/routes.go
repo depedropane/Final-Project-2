@@ -14,6 +14,7 @@ func SetupRoutes(
 	nakesService *services.NakesService,
 	jadwalService *services.JadwalService,
 	trackingRiwayatService *services.TrackingRiwayatService,
+	infoObatService *services.InfoObatService,
 ) *gin.Engine {
 	r := gin.Default()
 
@@ -36,6 +37,9 @@ func SetupRoutes(
 
 		// ── Tracking Riwayat Routes ───────────────────────────────────────────
 		setupTrackingRiwayatRoutes(api, trackingRiwayatService)
+
+		// ── Tracking Info Obat Routes ───────────────────────────────────────────
+		setupInfoObatRoutes(api, infoObatService)
 
 		// ── Admin Routes (protected: Nakes only) ───────────────────────────────
 		setupAdminRoutes(api, pasienService, jadwalService)
@@ -120,6 +124,19 @@ func setupTrackingRiwayatRoutes(api *gin.RouterGroup, trackingRiwayatService *se
 		tracking.PUT("/:id", trackingHandler.Update)
 		tracking.DELETE("/:id", trackingHandler.Delete)
 	}
+}
+
+// ─── Info Obat Routes ───────────────────────────────────────────────
+func setupInfoObatRoutes(api *gin.RouterGroup, infoObatService *services.InfoObatService) {
+    infoObatHandler := handlers.NewInfoObatHandler(infoObatService)
+    infoObat := api.Group("/info-obat")
+    {
+        infoObat.GET("", infoObatHandler.GetAll)
+        infoObat.GET("/:id", infoObatHandler.GetByID)
+        infoObat.POST("", middleware.AuthMiddleware, middleware.NakesOnlyMiddleware, infoObatHandler.Create)
+        infoObat.PUT("/:id", middleware.AuthMiddleware, middleware.NakesOnlyMiddleware, infoObatHandler.Update)
+        infoObat.DELETE("/:id", middleware.AuthMiddleware, middleware.NakesOnlyMiddleware, infoObatHandler.Delete)
+    }
 }
 
 // ── CORS Middleware ───────────────────────────────────────────────────────

@@ -1,87 +1,117 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/jadwal_rutinitas_model.dart';
+import '../../services/riwayat_konsumsi_service.dart';
 
-class RutinitasSehatScreen extends StatefulWidget {
-  const RutinitasSehatScreen({super.key});
+// ─── MODEL ───────────────────────────────────────────────────────────────────
+
+enum MedStatus { taken, missed }
+
+class MedLog {
+  final String name;
+  final String instruction;
+  final MedStatus status;
+  final Color color;
+
+  const MedLog({
+    required this.name,
+    required this.instruction,
+    required this.status,
+    this.color = const Color(0xFF4CAF82),
+  });
+}
+
+class DayLog {
+  final DateTime date;
+  final List<MedLog> logs;
+  const DayLog({required this.date, required this.logs});
+}
+
+// ─── SCREEN ───────────────────────────────────────────────────────────────────
+
+class RiwayatKonsumsiObatScreen extends StatefulWidget {
+  final int pasienId;
+
+  const RiwayatKonsumsiObatScreen({super.key, required this.pasienId});
 
   @override
   State<RutinitasSehatScreen> createState() => _RutinitasSehatScreenState();
 }
 
-class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen> {
+  int _selectedFilter = 0;
+  final List<String> _filters = ['Semua', '7 Hari', '30 Hari', '3 Bulan'];
 
-  // ── Warna utama dari Figma spec ──────────────────────────────────────────
-  static const Color _bgPage        = Color(0xFFF8FAF9);
-  static const Color _streakBg      = Color(0xFF10221C);
-  static const Color _streakTeal    = Color(0xFF13ECA4);
-  static const Color _green         = Color(0xFF13EC5B);
-  static const Color _tabActive     = Color(0xFF0F172A);
-  static const Color _tabInactive   = Color(0xFF64748B);
-  static const Color _cardBg        = Color(0xFFF6F8F7);
-  static const Color _cardBorder    = Color(0xFFF1F5F9);
-  static const Color _textPrimary   = Color(0xFF0F172A);
-  static const Color _textSecondary = Color(0xFF64748B);
-  // ─────────────────────────────────────────────────────────────────────────
-
-  final List<JadwalRutinitasItem> _jadwalList = [
-    JadwalRutinitasItem(
-      jadwalRutinitasId: 1,
-      namaAktivitas: 'Lari Pagi',
-      jamMulai: '06:30',
-      jamSelesai: '07:00',
-      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'],
-      status: 'done',
-    ),
-    JadwalRutinitasItem(
-      jadwalRutinitasId: 2,
-      namaAktivitas: 'Minum Air Putih',
-      jamMulai: '19:00',
-      jamSelesai: '20:00',
-      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-      status: 'done',
-    ),
-    JadwalRutinitasItem(
-      jadwalRutinitasId: 3,
-      namaAktivitas: 'Makan Malam',
-      jamMulai: '08:00',
-      jamSelesai: '09:00',
-      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-      status: 'done',
-    ),
-    JadwalRutinitasItem(
-      jadwalRutinitasId: 4,
-      namaAktivitas: 'Sedekah',
-      jamMulai: '21:00',
-      jamSelesai: '22:00',
-      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'],
-      status: 'terlewat',
-    ),
-  ];
-
-  final int _streakHari = 12;
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<DayLog> _allData = [];
+  double _compliancePercent = 0;
+  int _takenDoses = 0;
+  int _totalDoses = 0;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 1);
-    _loadPasienId();
+    _loadAllRiwayat();
   }
 
-  Future<void> _loadPasienId() async {
-    await SharedPreferences.getInstance();
+  Future<void> _loadAllRiwayat() async {
+    try {
+      setState(() => _isLoading = true);
+
+      // Get riwayat dari API
+      final riwayatList =
+          await RiwayatKonsumsiService.getRiwayatByPasien(widget.pasienId);
+
+      // Get compliance stats
+      final statsResponse =
+          await RiwayatKonsumsiService.getComplianceStats(widget.pasienId);
+      final takenDoses = statsResponse['taken_doses'] ?? 0;
+      final totalDoses = statsResponse['total_doses'] ?? 0;
+
+      // Group riwayat by date
+      Map<DateTime, List<MedLog>> groupedByDate = {};
+      for (final riwayat in riwayatList) {
+        final dateKey = DateTime(
+            riwayat.tanggal.year, riwayat.tanggal.month, riwayat.tanggal.day);
+
+        if (!groupedByDate.containsKey(dateKey)) {
+          groupedByDate[dateKey] = [];
+        }
+
+        final medLog = MedLog(
+          name:
+              'Obat ${riwayat.jadwalId}', // Nama obat akan di-fetch dari jadwal jika diperlukan
+          instruction: 'Diminum, ${riwayat.waktu}',
+          status:
+              riwayat.status == 'taken' ? MedStatus.taken : MedStatus.missed,
+        );
+
+        groupedByDate[dateKey]!.add(medLog);
+      }
+
+      // Convert to DayLog list
+      final dayLogs = groupedByDate.entries
+          .map((e) => DayLog(date: e.key, logs: e.value))
+          .toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+
+      setState(() {
+        _allData = dayLogs;
+        _takenDoses = takenDoses;
+        _totalDoses = totalDoses;
+        _compliancePercent = totalDoses == 0 ? 0 : takenDoses / totalDoses;
+        _isLoading = false;
+        _errorMessage = null;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Gagal memuat riwayat: $e';
+      });
+    }
   }
 
-  Future<void> _refresh() async {
-    await _loadPasienId();
-    await Future.delayed(const Duration(milliseconds: 500));
-  }
-
-  String _hariIni() {
-    const hari  = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-    const bulan = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  // ── Daftar obat: berubah sesuai filter ──
+  List<DayLog> get _filteredData {
     final now = DateTime.now();
     return '${hari[now.weekday]}, ${now.day} ${bulan[now.month]}';
   }
