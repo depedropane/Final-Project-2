@@ -8,7 +8,6 @@ import '../config/app_config.dart';
 import './rutinitas_mandiri/jadwal_rutinitas_screen.dart';
 import 'login_screen.dart';
 import 'package:nauli_reminder/screens/obat_mandiri/riwayat_konsumsi_obat.dart';
-import 'package:nauli_reminder/screens/obat_mandiri/info_obat.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -176,20 +175,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       subtitle: 'Kelola Pengingat')),
               const SizedBox(width: 12),
               Expanded(
-                  child: GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const InfoObatScreen(),
-                      ),
-                    ),
-                    child: _menuCard(
-                        icon: Icons.medical_information_outlined,
-                        iconColor: const Color(0xFFFFB300),
-                        bgColor: const Color(0xFFFFFDE7),
-                        title: 'Info Obat',
-                        subtitle: 'Detail & Panduan'),
-                  )),
+                  child: _menuCard(
+                      icon: Icons.medical_information_outlined,
+                      iconColor: const Color(0xFFFFB300),
+                      bgColor: const Color(0xFFFFFDE7),
+                      title: 'Info Obat',
+                      subtitle: 'Detail & Panduan')),
             ],
           ),
           const SizedBox(height: 12),

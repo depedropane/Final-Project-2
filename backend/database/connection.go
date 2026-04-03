@@ -33,7 +33,6 @@ func ConnectDatabase() {
 		&models.Nakes{},
 		&models.Jadwal{},
 		&models.TrackingRiwayat{},
-		&models.InfoObat{},
 	)
 	if err != nil {
 		log.Fatal("Gagal migrasi database:", err)

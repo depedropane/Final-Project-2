@@ -141,6 +141,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Back button
+            Padding(
+              padding: const EdgeInsets.only(left: 8, top: 8),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),

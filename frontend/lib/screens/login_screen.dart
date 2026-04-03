@@ -84,6 +84,25 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Tombol Back yang sudah diperbaiki
+            Padding(
+              padding: const EdgeInsets.only(left: 8, top: 8),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    // Jika tidak ada halaman sebelumnya, arahkan ke Register (sesuai kebutuhan)
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                    );
+                  }
+                },
+              ),
+            ),
+
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
@@ -145,9 +164,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: _inputDec('Contoh: megantoruan@gmail.com'),
-                        validator: (v) =>
-                            v == null || v.isEmpty ? 'Email wajib diisi' : null,
+                        decoration:
+                            _inputDec('Contoh: megantoruan@gmail.com'),
+                        validator: (v) => v == null || v.isEmpty
+                            ? 'Email wajib diisi'
+                            : null,
                       ),
                       const SizedBox(height: 16),
 
