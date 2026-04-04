@@ -73,3 +73,21 @@ func PasienOnlyMiddleware(c *gin.Context) {
 
 	c.Next()
 }
+
+// AdminOnlyMiddleware - Hanya admin (nakes) yang bisa akses
+func AdminOnlyMiddleware(c *gin.Context) {
+	role, exists := c.Get("role")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "User tidak terautentikasi"})
+		c.Abort()
+		return
+	}
+
+	if role != "nakes" {
+		c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "Hanya nakes (admin) yang bisa akses"})
+		c.Abort()
+		return
+	}
+
+	c.Next()
+}

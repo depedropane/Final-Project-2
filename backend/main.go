@@ -22,6 +22,7 @@ func main() {
 	jadwalRepo := repositories.NewJadwalRepository()
 	trackingRiwayatRepo := repositories.NewTrackingRiwayatRepository()
 	infoObatRepo := repositories.NewInfoObatRepository()
+
 	// 4. Initialize Services
 	authService := services.NewAuthService(pasienRepo, nakesRepo)
 	pasienService := services.NewPasienService(pasienRepo)
@@ -29,8 +30,10 @@ func main() {
 	jadwalService := services.NewJadwalService(jadwalRepo)
 	trackingRiwayatService := services.NewTrackingRiwayatService(trackingRiwayatRepo)
 	infoObatService := services.NewInfoObatService(infoObatRepo)
+
 	// 5. Setup Routes with Services
-	r := routes.SetupRoutes(authService, pasienService, nakesService, jadwalService, trackingRiwayatService, infoObatService,)
+	r := routes.SetupRoutes(authService, pasienService, nakesService, jadwalService, trackingRiwayatService, infoObatService)
+	
 	// 6. Run Server
 	port := os.Getenv("PORT")
 	if port == "" {

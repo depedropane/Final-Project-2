@@ -55,6 +55,7 @@ func setupAuthRoutes(api *gin.RouterGroup, authService *services.AuthService) {
 	{
 		auth.POST("/pasien/login", authHandler.LoginPasien)
 		auth.POST("/nakes/login", authHandler.LoginNakes)
+		auth.POST("/admin/login", authHandler.LoginAdmin)
 	}
 }
 
@@ -77,7 +78,6 @@ func setupNakesRoutes(api *gin.RouterGroup, nakesService *services.NakesService)
 	nakes := api.Group("/nakes")
 	{
 		nakes.GET("", nakesHandler.GetNakes)
-		nakes.POST("/register", nakesHandler.RegisterNakes)
 	}
 }
 
@@ -95,7 +95,7 @@ func setupJadwalRoutes(api *gin.RouterGroup, jadwalService *services.JadwalServi
 // ── Admin Routes (Protected: Nakes only) ──────────────────────────────────
 func setupAdminRoutes(api *gin.RouterGroup, pasienService *services.PasienService, jadwalService *services.JadwalService) {
 	adminHandler := handlers.NewAdminHandler(pasienService, jadwalService)
-	admin := api.Group("/admin", middleware.AuthMiddleware, middleware.NakesOnlyMiddleware)
+	admin := api.Group("/admin", middleware.AuthMiddleware, middleware.AdminOnlyMiddleware)
 	{
 		// Dashboard
 		admin.GET("/dashboard", adminHandler.AdminDashboard)
@@ -128,15 +128,15 @@ func setupTrackingRiwayatRoutes(api *gin.RouterGroup, trackingRiwayatService *se
 
 // ─── Info Obat Routes ───────────────────────────────────────────────
 func setupInfoObatRoutes(api *gin.RouterGroup, infoObatService *services.InfoObatService) {
-    infoObatHandler := handlers.NewInfoObatHandler(infoObatService)
-    infoObat := api.Group("/info-obat")
-    {
-        infoObat.GET("", infoObatHandler.GetAll)
-        infoObat.GET("/:id", infoObatHandler.GetByID)
-        infoObat.POST("", middleware.AuthMiddleware, middleware.NakesOnlyMiddleware, infoObatHandler.Create)
-        infoObat.PUT("/:id", middleware.AuthMiddleware, middleware.NakesOnlyMiddleware, infoObatHandler.Update)
-        infoObat.DELETE("/:id", middleware.AuthMiddleware, middleware.NakesOnlyMiddleware, infoObatHandler.Delete)
-    }
+	infoObatHandler := handlers.NewInfoObatHandler(infoObatService)
+	infoObat := api.Group("/info-obat")
+	{
+		infoObat.GET("", infoObatHandler.GetAll)
+		infoObat.GET("/:id", infoObatHandler.GetByID)
+		infoObat.POST("", middleware.AuthMiddleware, middleware.NakesOnlyMiddleware, infoObatHandler.Create)
+		infoObat.PUT("/:id", middleware.AuthMiddleware, middleware.NakesOnlyMiddleware, infoObatHandler.Update)
+		infoObat.DELETE("/:id", middleware.AuthMiddleware, middleware.NakesOnlyMiddleware, infoObatHandler.Delete)
+	}
 }
 
 // ── CORS Middleware ───────────────────────────────────────────────────────

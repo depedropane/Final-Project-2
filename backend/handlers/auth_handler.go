@@ -92,3 +92,36 @@ func (h *AuthHandler) LoginNakes(c *gin.Context) {
 		},
 	})
 }
+
+// LoginAdmin - POST /api/v1/auth/admin/login
+func (h *AuthHandler) LoginAdmin(c *gin.Context) {
+	var input LoginRequest
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, LoginResponse{
+			Success: false,
+			Message: "Email dan password tidak boleh kosong",
+		})
+		return
+	}
+
+	token, nakesID, nama, err := h.authService.LoginNakes(input.Email, input.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, LoginResponse{
+			Success: false,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, LoginResponse{
+		Success: true,
+		Message: "Login berhasil",
+		Token:   token,
+		Data: gin.H{
+			"id":    nakesID,
+			"nama":  nama,
+			"email": input.Email,
+			"role":  "nakes",
+		},
+	})
+}
