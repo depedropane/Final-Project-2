@@ -221,4 +221,85 @@ class ApiService {
       return false;
     }
   }
+
+  // ── Get Compliance Stats ──────────────────────────────────────────────────────
+  // GET /api/v1/riwayat/compliance/:pasien_id
+  Future<Map<String, dynamic>> getComplianceStats(int pasienId) async {
+    try {
+      final url =
+          Uri.parse('${AppConfig.baseUrl}/riwayat/compliance/$pasienId');
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          'success': true,
+          'takenDoses': data['taken_doses'] ?? 0,
+          'totalDoses': data['total_doses'] ?? 0,
+          'percentage': data['percentage'] ?? 0.0,
+        };
+      }
+      return {'success': false, 'percentage': 0.0, 'takenDoses': 0, 'totalDoses': 0};
+    } catch (e) {
+      debugPrint('Error getComplianceStats: $e');
+      return {'success': false, 'percentage': 0.0, 'takenDoses': 0, 'totalDoses': 0};
+    }
+  }
+
+  // ── Get Tracking by Date Range ────────────────────────────────────────────────
+  // GET /api/v1/riwayat/pasien/:pasien_id/date-range?start_date=...&end_date=...
+  Future<List<Map<String, dynamic>>> getTrackingByDateRange({
+    required int pasienId,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    try {
+      final startStr = startDate.toIso8601String().split('T')[0];
+      final endStr = endDate.toIso8601String().split('T')[0];
+
+      final url = Uri.parse(
+        '${AppConfig.baseUrl}/riwayat/pasien/$pasienId/date-range?start_date=$startStr&end_date=$endStr',
+      );
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['data'] is List) {
+          return List<Map<String, dynamic>>.from(
+            (data['data'] as List).map((item) => item as Map<String, dynamic>),
+          );
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getTrackingByDateRange: $e');
+      return [];
+    }
+  }
+
+  // ── Get Tracking by Pasien ID ─────────────────────────────────────────────────
+  // GET /api/v1/riwayat/pasien/:pasien_id
+  Future<List<Map<String, dynamic>>> getTrackingByPasien(int pasienId) async {
+    try {
+      final url =
+          Uri.parse('${AppConfig.baseUrl}/riwayat/pasien/$pasienId');
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['data'] is List) {
+          return List<Map<String, dynamic>>.from(
+            (data['data'] as List).map((item) => item as Map<String, dynamic>),
+          );
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getTrackingByPasien: $e');
+      return [];
+    }
+  }
 }

@@ -14,15 +14,15 @@ class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
   late TabController _tabController;
 
   // ── Warna utama dari Figma spec ──────────────────────────────────────────
-  static const Color _bgPage        = Color(0xFFF8FAF9);
-  static const Color _streakBg      = Color(0xFF10221C);
-  static const Color _streakTeal    = Color(0xFF13ECA4);
-  static const Color _green         = Color(0xFF13EC5B);
-  static const Color _tabActive     = Color(0xFF0F172A);
-  static const Color _tabInactive   = Color(0xFF64748B);
-  static const Color _cardBg        = Color(0xFFF6F8F7);
-  static const Color _cardBorder    = Color(0xFFF1F5F9);
-  static const Color _textPrimary   = Color(0xFF0F172A);
+  static const Color _bgPage = Color(0xFFF8FAF9);
+  static const Color _streakBg = Color(0xFF10221C);
+  static const Color _streakTeal = Color(0xFF13ECA4);
+  static const Color _green = Color(0xFF13EC5B);
+  static const Color _tabActive = Color(0xFF0F172A);
+  static const Color _tabInactive = Color(0xFF64748B);
+  static const Color _cardBg = Color(0xFFF6F8F7);
+  static const Color _cardBorder = Color(0xFFF1F5F9);
+  static const Color _textPrimary = Color(0xFF0F172A);
   static const Color _textSecondary = Color(0xFF64748B);
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -81,8 +81,31 @@ class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
   }
 
   String _hariIni() {
-    const hari  = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-    const bulan = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    const hari = [
+      '',
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+      'Minggu'
+    ];
+    const bulan = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des'
+    ];
     final now = DateTime.now();
     return '${hari[now.weekday]}, ${now.day} ${bulan[now.month]}';
   }
@@ -100,7 +123,7 @@ class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildObatTab(),      // tab 0 — TANPA streak
+                  _buildObatTab(), // tab 0 — TANPA streak
                   _buildRutinitasTab(), // tab 1 — DENGAN streak
                 ],
               ),
@@ -129,7 +152,8 @@ class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
                 color: const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(50),
               ),
-              child: const Icon(Icons.chevron_left_rounded, color: _textPrimary),
+              child:
+                  const Icon(Icons.chevron_left_rounded, color: _textPrimary),
             ),
           ),
           const Expanded(
@@ -260,8 +284,8 @@ class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
                   center: const Alignment(-0.8, -0.8),
                   radius: 1.5,
                   colors: [
-                    _streakTeal.withOpacity(0.15),
-                    _streakTeal.withOpacity(0.0),
+                    _streakTeal.withValues(alpha: 0.15),
+                    _streakTeal.withValues(alpha: 0.0),
                   ],
                 ),
               ),
@@ -312,10 +336,10 @@ class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
     final isLate = item.isTerlewat;
 
     final Color badgeBg = isDone
-        ? const Color(0xFF13EC5B).withOpacity(0.5)
+        ? const Color(0xFF13EC5B).withValues(alpha: 0.5)
         : isLate
-            ? const Color(0xFFEC1E13).withOpacity(0.95)
-            : Colors.orange.withOpacity(0.3);
+            ? const Color(0xFFEC1E13).withValues(alpha: 0.95)
+            : Colors.orange.withValues(alpha: 0.3);
 
     final String badgeText = isDone
         ? 'Selesai'
@@ -350,7 +374,8 @@ class _RutinitasSehatScreenState extends State<RutinitasSehatScreen>
               const SizedBox(height: 4),
               Row(
                 children: [
-                  const Icon(Icons.access_time_rounded, size: 12, color: _textSecondary),
+                  const Icon(Icons.access_time_rounded,
+                      size: 12, color: _textSecondary),
                   const SizedBox(width: 4),
                   Text(
                     '${item.jamMulai} - ${item.jamSelesai}',

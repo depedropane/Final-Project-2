@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import './tambah_jadwal_konsumsi_obat_mandiri.dart';
 
-
 class JadwalKonsumsiObatMandiri extends StatefulWidget {
   const JadwalKonsumsiObatMandiri({super.key});
 
@@ -12,8 +11,7 @@ class JadwalKonsumsiObatMandiri extends StatefulWidget {
       _JadwalKonsumsiObatMandiriState();
 }
 
-class _JadwalKonsumsiObatMandiriState
-    extends State<JadwalKonsumsiObatMandiri> {
+class _JadwalKonsumsiObatMandiriState extends State<JadwalKonsumsiObatMandiri> {
   List<dynamic> jadwalList = [];
   bool isLoading = true;
 
@@ -40,7 +38,6 @@ class _JadwalKonsumsiObatMandiriState
         });
       }
     } catch (e) {
-      print(e);
       setState(() => isLoading = false);
     }
   }
@@ -48,17 +45,18 @@ class _JadwalKonsumsiObatMandiriState
   // ================= DELETE =================
   Future<void> deleteJadwal(int id) async {
     try {
-      final response =
-          await http.delete(Uri.parse("$baseUrl/$id"));
+      final response = await http.delete(Uri.parse("$baseUrl/$id"));
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Jadwal berhasil dihapus")),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Jadwal berhasil dihapus")),
+          );
+        }
         fetchJadwal(); // refresh
       }
     } catch (e) {
-      print(e);
+      // Error handling
     }
   }
 
@@ -86,14 +84,12 @@ class _JadwalKonsumsiObatMandiriState
             ),
             child: const Row(
               children: [
-                Icon(Icons.emoji_events,
-                    color: Colors.orange, size: 40),
+                Icon(Icons.emoji_events, color: Colors.orange, size: 40),
                 SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Strik Kamu!",
-                        style: TextStyle(color: Colors.white)),
+                    Text("Strik Kamu!", style: TextStyle(color: Colors.white)),
                     Text("12 Hari",
                         style: TextStyle(
                             color: Colors.white,
@@ -120,10 +116,8 @@ class _JadwalKonsumsiObatMandiriState
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 16, vertical: 8),
                             child: ListTile(
-                              title:
-                                  Text(item['nama_jadwal'] ?? '-'),
-                              subtitle:
-                                  Text(item['dosis'] ?? '-'),
+                              title: Text(item['nama_jadwal'] ?? '-'),
+                              subtitle: Text(item['dosis'] ?? '-'),
 
                               // 🔥 BUTTON EDIT + DELETE
                               trailing: Row(
@@ -137,8 +131,7 @@ class _JadwalKonsumsiObatMandiriState
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) =>
-                                              TambahJadwalKonsumsi(
+                                          builder: (_) => TambahJadwalKonsumsi(
                                             data: item,
                                           ),
                                         ),
@@ -166,8 +159,7 @@ class _JadwalKonsumsiObatMandiriState
                                             TextButton(
                                               onPressed: () {
                                                 Navigator.pop(context);
-                                                deleteJadwal(
-                                                    item['jadwal_id']);
+                                                deleteJadwal(item['jadwal_id']);
                                               },
                                               child: const Text("Hapus"),
                                             ),
@@ -190,15 +182,13 @@ class _JadwalKonsumsiObatMandiriState
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
-                minimumSize:
-                    const Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        const TambahJadwalKonsumsi(),
+                    builder: (_) => const TambahJadwalKonsumsi(),
                   ),
                 ).then((_) => fetchJadwal());
               },

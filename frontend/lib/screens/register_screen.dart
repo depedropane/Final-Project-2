@@ -141,15 +141,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Back button
-            Padding(
-              padding: const EdgeInsets.only(left: 8, top: 8),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, size: 20),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
@@ -195,8 +186,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         keyboardType: TextInputType.emailAddress,
                         decoration: _inputDec(
                           'Contoh: megahtoruan@gmail.com',
-                          suffix: Icon(Icons.visibility_off_outlined,
-                              color: Colors.grey[400]),
                         ),
                         validator: (v) =>
                             v == null || v.isEmpty ? 'Email wajib diisi' : null,
@@ -238,8 +227,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'NIK wajib diisi';
                           if (v.length != 16) return 'NIK harus tepat 16 digit';
-                          if (!RegExp(r'^\d+$').hasMatch(v))
+                          if (!RegExp(r'^\d+$').hasMatch(v)) {
                             return 'NIK hanya boleh berisi angka';
+                          }
                           return null;
                         },
                       ),
