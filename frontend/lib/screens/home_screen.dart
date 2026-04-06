@@ -7,7 +7,8 @@ import '../models/jadwal_obat_model.dart';
 import '../config/app_config.dart';
 import './rutinitas_mandiri/jadwal_rutinitas_screen.dart';
 import './obat_mandiri/riwayat_konsumsi_obat.dart';
-import 'login_screen.dart';
+import './profile/profile.dart';
+import './rutinitas_mandiri/rutinitas_sehat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -594,7 +595,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const RutinitasSehatScreen(),
+                  builder: (_) => const JadwalRutinitasScreen(),
                 ),
               );
             },
@@ -607,18 +608,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           GestureDetector(
-            onTap: () async {
-              await auth.logout();
-              if (context.mounted) {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()));
-              }
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProfileScreen(),
+                ),
+              );
             },
-            child: Icon(Icons.settings_outlined,
-                color: _selectedNav == 3
-                    ? const Color(0xFF15BE77)
-                    : Colors.grey[400],
-                size: 26),
+            child: Icon(
+              Icons.person_outline,
+              color: _selectedNav == 3
+                  ? const Color(0xFF15BE77)
+                  : Colors.grey[400],
+              size: 26,
+            ),
           ),
         ],
       ),
