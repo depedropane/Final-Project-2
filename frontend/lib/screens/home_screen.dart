@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart'; // Tambahkan ini di pubspec.yaml
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../models/jadwal_obat_model.dart';
@@ -45,6 +46,22 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } else {
       setState(() => _isLoadingJadwal = false);
+    }
+  }
+
+  // Fungsi pembantu untuk cek status terlewat secara real-time
+  bool _cekApakahTerlewat(String jamMinum) {
+    try {
+      final now = DateTime.now();
+      // Asumsi format jam dari API adalah "HH:mm:ss" atau "HH:mm"
+      final parts = jamMinum.split(':');
+      final jam = int.parse(parts[0]);
+      final menit = int.parse(parts[1]);
+      
+      final waktuJadwal = DateTime(now.year, now.month, now.day, jam, menit);
+      return now.isAfter(waktuJadwal);
+    } catch (e) {
+      return false;
     }
   }
 
@@ -113,7 +130,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Header ───────────────────────────────────────────────────────────────────
   Widget _buildHeader(String nama) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -152,7 +168,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Menu Utama ───────────────────────────────────────────────────────────────
   Widget _buildMenuUtama() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -203,14 +218,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              // ✅ DIPERBAIKI: mengarah ke RutinitasSehatScreen
               Expanded(
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const RutinitasSehatScreen(),
+                        builder: (_) => JadwalRutinitasScreen(),
                       ),
                     );
                   },
@@ -259,7 +273,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Kalender ─────────────────────────────────────────────────────────────────
   Widget _buildKalender() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -293,14 +306,13 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
                 .map((d) => SizedBox(
-                      width: 32,
-                      child: Text(d,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey[500],
-                              fontWeight: FontWeight.w500)),
-                    ))
+                    width: 32,
+                    child: Text(d,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
+                            fontWeight: FontWeight.w500))))
                 .toList(),
           ),
           const SizedBox(height: 8),
@@ -321,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
           boxShadow: active
               ? [
                   BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
+                      color: Colors.black.withOpacity(0.08),
                       blurRadius: 4,
                       offset: const Offset(0, 1))
                 ]
@@ -426,24 +438,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _bulanTahun(DateTime dt) {
     const bulan = [
-      '',
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember'
+      '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
     return '${bulan[dt.month]} ${dt.year}';
   }
 
-  // ── Jadwal Obat dari API ──────────────────────────────────────────────────────
   Widget _buildJadwalSection() {
     if (_isLoadingJadwal) {
       return const Center(
@@ -466,22 +466,26 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Column(
-      children: _jadwalList.map((item) => _buildJadwalCard(item)).toList(),
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: Text("Jadwal Obat Hari Ini",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        ),
+        ..._jadwalList.map((item) => _buildJadwalCard(item)).toList(),
+      ],
     );
   }
 
   Widget _buildJadwalCard(JadwalObatItem item) {
-    final jamParts = item.jamMinum.split(':');
-    final jadwalDt = DateTime.now().copyWith(
-      hour: int.tryParse(jamParts.isNotEmpty ? jamParts[0] : '0') ?? 0,
-      minute: int.tryParse(jamParts.length > 1 ? jamParts[1] : '0') ?? 0,
-    );
-    final isLate = jadwalDt.isBefore(DateTime.now()) && !item.isDone;
+    // LOGIKA TERLEWAT: Cek waktu sekarang vs jam minum
+    bool isLate = _cekApakahTerlewat(item.jamMinum) && !item.isDone;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
+        // Ganti warna kalau terlewat
         color: isLate ? const Color(0xFFFFF3F3) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: isLate
@@ -492,14 +496,23 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           SizedBox(
             width: 52,
-            child: Text(
-              item.jamMinum.substring(0, 5),
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: isLate
-                      ? const Color(0xFFE53935)
-                      : const Color(0xFF1A1A1A)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.jamMinum.substring(0, 5),
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: isLate ? Colors.red : const Color(0xFF1A1A1A)),
+                ),
+                if (isLate)
+                  const Text("TELAT",
+                      style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold)),
+              ],
             ),
           ),
           const SizedBox(width: 8),
@@ -535,14 +548,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 color: item.isDone ? const Color(0xFF15BE77) : Colors.white,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color:
-                      item.isDone ? const Color(0xFF15BE77) : Colors.grey[300]!,
+                  color: isLate && !item.isDone
+                      ? Colors.red
+                      : (item.isDone ? const Color(0xFF15BE77) : Colors.grey[300]!),
                   width: 1.5,
                 ),
               ),
               child: item.isDone
                   ? const Icon(Icons.check, color: Colors.white, size: 16)
-                  : null,
+                  : (isLate ? const Icon(Icons.priority_high, color: Colors.red, size: 14) : null),
             ),
           ),
         ],
@@ -550,7 +564,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ── Bottom Nav ───────────────────────────────────────────────────────────────
   Widget _buildBottomNav(BuildContext context, AuthProvider auth) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -560,7 +573,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
+              color: Colors.black.withOpacity(0.08),
               blurRadius: 16,
               offset: const Offset(0, 4))
         ],
@@ -588,13 +601,12 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 28),
             ),
           ),
-          // ✅ DIPERBAIKI: mengarah ke RutinitasSehatScreen
           GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const RutinitasSehatScreen(),
+                  builder: (_) => JadwalRutinitasScreen(),
                 ),
               );
             },

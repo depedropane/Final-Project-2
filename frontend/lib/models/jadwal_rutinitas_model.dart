@@ -15,7 +15,27 @@ class JadwalRutinitasItem {
     required this.status,
   });
 
-  bool get isDone => status == 'done';
-  bool get isTerlewat => status == 'terlewat';
-  bool get isPending => status == 'pending';
+  // Fungsi untuk mengubah JSON (dari memori HP) kembali jadi Object Flutter
+  factory JadwalRutinitasItem.fromJson(Map<String, dynamic> json) {
+    return JadwalRutinitasItem(
+      jadwalRutinitasId: json['jadwalRutinitasId'],
+      namaAktivitas: json['namaAktivitas'],
+      jamMulai: json['jamMulai'],
+      jamSelesai: json['jamSelesai'],
+      pengulangan: List<String>.from(json['pengulangan']),
+      status: json['status'],
+    );
+  }
+
+  // Fungsi untuk mengubah Object Flutter jadi JSON (biar bisa disimpan ke HP)
+  Map<String, dynamic> toJson() {
+    return {
+      'jadwalRutinitasId': jadwalRutinitasId,
+      'namaAktivitas': namaAktivitas,
+      'jamMulai': jamMulai,
+      'jamSelesai': jamSelesai,
+      'pengulangan': pengulangan,
+      'status': status,
+    };
+  }
 }
