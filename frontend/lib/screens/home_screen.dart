@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:intl/intl.dart'; // Tambahkan ini di pubspec.yaml
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../models/jadwal_obat_model.dart';
 import '../config/app_config.dart';
 import './rutinitas_mandiri/jadwal_rutinitas_screen.dart';
 import './obat_mandiri/riwayat_konsumsi_obat.dart';
-import 'login_screen.dart';
+import './profile/profile.dart';
+import './rutinitas_mandiri/rutinitas_sehat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -49,22 +49,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Fungsi pembantu untuk cek status terlewat secara real-time
-  bool _cekApakahTerlewat(String jamMinum) {
-    try {
-      final now = DateTime.now();
-      // Asumsi format jam dari API adalah "HH:mm:ss" atau "HH:mm"
-      final parts = jamMinum.split(':');
-      final jam = int.parse(parts[0]);
-      final menit = int.parse(parts[1]);
-      
-      final waktuJadwal = DateTime(now.year, now.month, now.day, jam, menit);
-      return now.isAfter(waktuJadwal);
-    } catch (e) {
-      return false;
-    }
-  }
-
   Future<void> _toggleStatus(JadwalObatItem item) async {
     if (_pasienId == null) return;
 
@@ -101,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onRefresh: _loadData,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100), // Ditambah padding bawah agar tidak tertutup nav
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -110,9 +94,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 20),
                           _buildKalender(),
                           const SizedBox(height: 16),
-                          const Text('Jadwal Obat Hari Ini', 
-                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 10),
                           _buildJadwalSection(),
                         ],
                       ),
@@ -133,6 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Header ───────────────────────────────────────────────────────────────────
   Widget _buildHeader(String nama) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
@@ -171,6 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Menu Utama ───────────────────────────────────────────────────────────────
   Widget _buildMenuUtama() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -209,13 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-<<<<<<< Updated upstream
                       builder: (_) => const RiwayatKonsumsiObatScreen(),
-=======
-                    builder: (_) => RiwayatKonsumsiObatScreen(), 
-
-
->>>>>>> Stashed changes
                     ),
                   ),
                   child: _menuCard(
@@ -227,17 +204,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(width: 12),
+              // ✅ DIPERBAIKI: mengarah ke RutinitasSehatScreen
               Expanded(
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-<<<<<<< Updated upstream
-                        builder: (_) => JadwalRutinitasScreen(),
-=======
-                        builder: (_) => const JadwalRutinitasScreen(),
->>>>>>> Stashed changes
+                        builder: (_) => const RutinitasSehatScreen(),
                       ),
                     );
                   },
@@ -266,8 +240,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration:
-          BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+          color: bgColor, borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -286,6 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Kalender ─────────────────────────────────────────────────────────────────
   Widget _buildKalender() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -319,13 +294,14 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min']
                 .map((d) => SizedBox(
-                    width: 32,
-                    child: Text(d,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[500],
-                            fontWeight: FontWeight.w500))))
+                      width: 32,
+                      child: Text(d,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[500],
+                              fontWeight: FontWeight.w500)),
+                    ))
                 .toList(),
           ),
           const SizedBox(height: 8),
@@ -346,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
           boxShadow: active
               ? [
                   BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 4,
                       offset: const Offset(0, 1))
                 ]
@@ -390,8 +366,8 @@ class _HomeScreenState extends State<HomeScreen> {
       cells.add(const SizedBox(width: 32, height: 36));
     }
     for (int d = 1; d <= daysInMonth; d++) {
-      final isSelected = d == _selectedDate.day &&
-          _focusedMonth.month == _selectedDate.month;
+      final isSelected =
+          d == _selectedDate.day && _focusedMonth.month == _selectedDate.month;
       final isToday = d == now.day &&
           _focusedMonth.month == now.month &&
           _focusedMonth.year == now.year;
@@ -450,17 +426,25 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _bulanTahun(DateTime dt) {
-<<<<<<< Updated upstream
     const bulan = [
-      '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      '',
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember'
     ];
-=======
-    const bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
->>>>>>> Stashed changes
     return '${bulan[dt.month]} ${dt.year}';
   }
 
+  // ── Jadwal Obat dari API ──────────────────────────────────────────────────────
   Widget _buildJadwalSection() {
     if (_isLoadingJadwal) {
       return const Center(
@@ -483,26 +467,22 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Column(
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(bottom: 12),
-          child: Text("Jadwal Obat Hari Ini",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-        ),
-        ..._jadwalList.map((item) => _buildJadwalCard(item)).toList(),
-      ],
+      children: _jadwalList.map((item) => _buildJadwalCard(item)).toList(),
     );
   }
 
   Widget _buildJadwalCard(JadwalObatItem item) {
-    // LOGIKA TERLEWAT: Cek waktu sekarang vs jam minum
-    bool isLate = _cekApakahTerlewat(item.jamMinum) && !item.isDone;
+    final jamParts = item.jamMinum.split(':');
+    final jadwalDt = DateTime.now().copyWith(
+      hour: int.tryParse(jamParts.isNotEmpty ? jamParts[0] : '0') ?? 0,
+      minute: int.tryParse(jamParts.length > 1 ? jamParts[1] : '0') ?? 0,
+    );
+    final isLate = jadwalDt.isBefore(DateTime.now()) && !item.isDone;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        // Ganti warna kalau terlewat
         color: isLate ? const Color(0xFFFFF3F3) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: isLate
@@ -513,23 +493,14 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           SizedBox(
             width: 52,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.jamMinum.substring(0, 5),
-                  style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: isLate ? Colors.red : const Color(0xFF1A1A1A)),
-                ),
-                if (isLate)
-                  const Text("TELAT",
-                      style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 8,
-                          fontWeight: FontWeight.bold)),
-              ],
+            child: Text(
+              item.jamMinum.substring(0, 5),
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: isLate
+                      ? const Color(0xFFE53935)
+                      : const Color(0xFF1A1A1A)),
             ),
           ),
           const SizedBox(width: 8),
@@ -538,8 +509,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item.dosis,
-                    style:
-                        TextStyle(fontSize: 11, color: Colors.grey[500])),
+                    style: TextStyle(fontSize: 11, color: Colors.grey[500])),
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -547,8 +517,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 10,
                         height: 10,
                         decoration: const BoxDecoration(
-                            color: Color(0xFF9C27B0),
-                            shape: BoxShape.circle)),
+                            color: Color(0xFF9C27B0), shape: BoxShape.circle)),
                     const SizedBox(width: 4),
                     Text(item.namaObat,
                         style: const TextStyle(
@@ -564,26 +533,17 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 26,
               height: 26,
               decoration: BoxDecoration(
-                color: item.isDone
-                    ? const Color(0xFF15BE77)
-                    : Colors.white,
+                color: item.isDone ? const Color(0xFF15BE77) : Colors.white,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-<<<<<<< Updated upstream
-                  color: isLate && !item.isDone
-                      ? Colors.red
-                      : (item.isDone ? const Color(0xFF15BE77) : Colors.grey[300]!),
-=======
-                  color: item.isDone
-                      ? const Color(0xFF15BE77)
-                      : Colors.grey[300]!,
->>>>>>> Stashed changes
+                  color:
+                      item.isDone ? const Color(0xFF15BE77) : Colors.grey[300]!,
                   width: 1.5,
                 ),
               ),
               child: item.isDone
                   ? const Icon(Icons.check, color: Colors.white, size: 16)
-                  : (isLate ? const Icon(Icons.priority_high, color: Colors.red, size: 14) : null),
+                  : null,
             ),
           ),
         ],
@@ -591,6 +551,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // ── Bottom Nav ───────────────────────────────────────────────────────────────
   Widget _buildBottomNav(BuildContext context, AuthProvider auth) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -600,7 +561,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 16,
               offset: const Offset(0, 4))
         ],
@@ -608,8 +569,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _navItem(Icons.home_rounded, 0, onTap: () => setState(() => _selectedNav = 0)),
-          _navItem(Icons.list_alt_rounded, 1, onTap: () => setState(() => _selectedNav = 1)),
+          _navItem(Icons.home_rounded, 0),
+          _navItem(Icons.list_alt_rounded, 1),
           GestureDetector(
             onTap: () {},
             child: Container(
@@ -628,13 +589,13 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 28),
             ),
           ),
-<<<<<<< Updated upstream
+          // ✅ DIPERBAIKI: mengarah ke RutinitasSehatScreen
           GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => JadwalRutinitasScreen(),
+                  builder: (_) => const JadwalRutinitasScreen(),
                 ),
               );
             },
@@ -647,40 +608,30 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           GestureDetector(
-            onTap: () async {
-              await auth.logout();
-              if (context.mounted) {
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()));
-              }
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProfileScreen(),
+                ),
+              );
             },
-            child: Icon(Icons.settings_outlined,
-                color: _selectedNav == 3
-                    ? const Color(0xFF15BE77)
-                    : Colors.grey[400],
-                size: 26),
+            child: Icon(
+              Icons.person_outline,
+              color: _selectedNav == 3
+                  ? const Color(0xFF15BE77)
+                  : Colors.grey[400],
+              size: 26,
+            ),
           ),
-=======
-          _navItem(Icons.directions_run_rounded, 2, onTap: () {
-            setState(() => _selectedNav = 2);
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const JadwalRutinitasScreen()));
-          }),
-          _navItem(Icons.settings_outlined, 3, onTap: () async {
-            setState(() => _selectedNav = 3);
-            await auth.logout();
-            if (context.mounted) {
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-            }
-          }),
->>>>>>> Stashed changes
         ],
       ),
     );
   }
 
-  Widget _navItem(IconData icon, int index, {required VoidCallback onTap}) {
+  Widget _navItem(IconData icon, int index) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => setState(() => _selectedNav = index),
       child: Icon(icon,
           color: _selectedNav == index
               ? const Color(0xFF15BE77)
