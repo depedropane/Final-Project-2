@@ -7,6 +7,7 @@ class RiwayatKonsumsiObatScreen extends StatefulWidget {
   const RiwayatKonsumsiObatScreen({super.key});
 
   @override
+<<<<<<< Updated upstream
   State<RiwayatKonsumsiObatScreen> createState() =>
       _RiwayatKonsumsiObatScreenState();
 }
@@ -31,10 +32,65 @@ class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen> {
   int _totalDoses = 0;
   List<Map<String, dynamic>> _trackingData = [];
   bool _isLoading = true;
+=======
+  State<RiwayatKonsumsiObatScreen> createState() => _RiwayatKonsumsiObatScreenState();
+}
+
+class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  // KONFIGURASI WARNA
+  static const Color _bgPage = Color(0xFFF8FAF9);
+  static const Color _streakBg = Color(0xFF10221C);
+  static const Color _streakTeal = Color(0xFF13ECA4);
+  static const Color _tabActive = Color(0xFF0F172A);
+  static const Color _tabInactive = Color(0xFF64748B);
+  static const Color _cardBg = Color(0xFFF6F8F7);
+  static const Color _cardBorder = Color(0xFFF1F5F9);
+
+  final int _streakHari = 12;
+
+  final List<JadwalRutinitasItem> _jadwalList = [
+    JadwalRutinitasItem(
+      jadwalRutinitasId: 1,
+      namaAktivitas: 'Lari Pagi',
+      jamMulai: '06:30',
+      jamSelesai: '07:00',
+      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'],
+      status: 'done',
+    ),
+    JadwalRutinitasItem(
+      jadwalRutinitasId: 2,
+      namaAktivitas: 'Minum Air Putih',
+      jamMulai: '19:00',
+      jamSelesai: '20:00',
+      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+      status: 'done',
+    ),
+    JadwalRutinitasItem(
+      jadwalRutinitasId: 3,
+      namaAktivitas: 'Makan Malam',
+      jamMulai: '08:00',
+      jamSelesai: '09:00',
+      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
+      status: 'done',
+    ),
+    JadwalRutinitasItem(
+      jadwalRutinitasId: 4,
+      namaAktivitas: 'Sedekah',
+      jamMulai: '21:00',
+      jamSelesai: '22:00',
+      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'],
+      status: 'terlewat',
+    ),
+  ];
+>>>>>>> Stashed changes
 
   @override
   void initState() {
     super.initState();
+<<<<<<< Updated upstream
     _loadData();
   }
 
@@ -83,6 +139,33 @@ class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen> {
   Future<void> _refreshData() async {
     setState(() => _isLoading = true);
     await _loadData();
+=======
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 1);
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData() async {
+    await SharedPreferences.getInstance();
+  }
+
+  Future<void> _refresh() async {
+    await _loadData();
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (mounted) setState(() {});
+  }
+
+  String _hariIni() {
+    const hari = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    const bulan = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    final now = DateTime.now();
+    return '${hari[now.weekday]}, ${now.day} ${bulan[now.month]}';
+>>>>>>> Stashed changes
   }
 
   @override
@@ -92,6 +175,7 @@ class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen> {
       body: SafeArea(
         child: Column(
           children: [
+<<<<<<< Updated upstream
             // ── Header ────────────────────────────────────────────────────
             _buildHeader(),
             // ── Content ───────────────────────────────────────────────────
@@ -122,53 +206,63 @@ class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen> {
                         ],
                       ),
                     ),
+=======
+            _header(),
+            _tabBar(),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _obatTab(),
+                  _rutinitasTab(),
+                ],
+              ),
+>>>>>>> Stashed changes
             ),
           ],
         ),
       ),
+<<<<<<< Updated upstream
     );
   }
 
   // ── Header ──────────────────────────────────────────────────────────────
   Widget _buildHeader() {
+=======
+      floatingActionButton: _fab(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget _header() {
+>>>>>>> Stashed changes
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           GestureDetector(
             onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(50),
-              ),
-              child: const Icon(
-                Icons.chevron_left_rounded,
-                color: _textPrimary,
-              ),
-            ),
+            child: const Icon(Icons.arrow_back),
           ),
           const Expanded(
             child: Text(
+<<<<<<< Updated upstream
               'Riwayat',
+=======
+              'Riwayat Kesehatan',
+>>>>>>> Stashed changes
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: _textPrimary,
-                fontFamily: 'Roboto',
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
-          const SizedBox(width: 36),
+          const SizedBox(width: 24),
         ],
       ),
     );
   }
 
+<<<<<<< Updated upstream
   // ── Compliance Card ─────────────────────────────────────────────────────
   Widget _buildComplianceCard() {
     return Container(
@@ -324,6 +418,115 @@ class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen> {
                 fontWeight: FontWeight.w600,
                 color: isSelected ? Colors.white : _textSecondary,
                 fontFamily: 'Inter',
+=======
+  Widget _tabBar() {
+    return Container(
+      color: Colors.white,
+      child: TabBar(
+        controller: _tabController,
+        labelColor: _tabActive,
+        unselectedLabelColor: _tabInactive,
+        indicatorColor: _streakTeal,
+        tabs: const [
+          Tab(text: 'Obat'),
+          Tab(text: 'Rutinitas'),
+        ],
+      ),
+    );
+  }
+
+  Widget _obatTab() {
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: const [
+          SizedBox(height: 50),
+          Text("Belum ada jadwal obat", textAlign: TextAlign.center),
+        ],
+      ),
+    );
+  }
+
+  Widget _rutinitasTab() {
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _streakCard(),
+          const SizedBox(height: 24),
+          Text(_hariIni(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 12),
+          ..._jadwalList.map((item) => _jadwalCard(item)),
+          const SizedBox(height: 80),
+        ],
+      ),
+    );
+  }
+
+  Widget _streakCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _streakBg,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Streak Kamu", style: TextStyle(color: _streakTeal.withOpacity(0.7))),
+              Text(
+                "$_streakHari Hari",
+                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const Icon(Icons.local_fire_department, color: _streakTeal, size: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _jadwalCard(JadwalRutinitasItem item) {
+    final bool isDone = item.status == 'done';
+    final bool isLate = item.status == 'terlewat';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _cardBorder),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(item.namaAktivitas, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text("${item.jamMulai} - ${item.jamSelesai}", 
+                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isDone ? Colors.green.withOpacity(0.1) : isLate ? Colors.red.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              isDone ? "Selesai" : isLate ? "Terlewat" : "Pending",
+              style: TextStyle(
+                fontSize: 12,
+                color: isDone ? Colors.green : isLate ? Colors.red : Colors.orange,
+>>>>>>> Stashed changes
               ),
             ),
           ),
@@ -467,4 +670,28 @@ class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen> {
       ),
     );
   }
+<<<<<<< Updated upstream
 }
+=======
+
+  Widget _fab() {
+    return Container(
+      width: MediaQuery.of(context).size.width - 80,
+      height: 50,
+      child: ElevatedButton(
+        onPressed: () {},
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _tabActive,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: const Text(
+          "Unduh Laporan (PDF)", 
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+    );
+  }
+}
+>>>>>>> Stashed changes

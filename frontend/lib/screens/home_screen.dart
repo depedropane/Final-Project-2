@@ -101,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     onRefresh: _loadData,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100), // Ditambah padding bawah agar tidak tertutup nav
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -110,6 +110,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(height: 20),
                           _buildKalender(),
                           const SizedBox(height: 16),
+                          const Text('Jadwal Obat Hari Ini', 
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
                           _buildJadwalSection(),
                         ],
                       ),
@@ -206,7 +209,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
+<<<<<<< Updated upstream
                       builder: (_) => const RiwayatKonsumsiObatScreen(),
+=======
+                    builder: (_) => RiwayatKonsumsiObatScreen(), 
+
+
+>>>>>>> Stashed changes
                     ),
                   ),
                   child: _menuCard(
@@ -224,7 +233,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
+<<<<<<< Updated upstream
                         builder: (_) => JadwalRutinitasScreen(),
+=======
+                        builder: (_) => const JadwalRutinitasScreen(),
+>>>>>>> Stashed changes
                       ),
                     );
                   },
@@ -253,8 +266,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Container(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-          color: bgColor, borderRadius: BorderRadius.circular(12)),
+      decoration:
+          BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -377,8 +390,8 @@ class _HomeScreenState extends State<HomeScreen> {
       cells.add(const SizedBox(width: 32, height: 36));
     }
     for (int d = 1; d <= daysInMonth; d++) {
-      final isSelected =
-          d == _selectedDate.day && _focusedMonth.month == _selectedDate.month;
+      final isSelected = d == _selectedDate.day &&
+          _focusedMonth.month == _selectedDate.month;
       final isToday = d == now.day &&
           _focusedMonth.month == now.month &&
           _focusedMonth.year == now.year;
@@ -437,10 +450,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _bulanTahun(DateTime dt) {
+<<<<<<< Updated upstream
     const bulan = [
       '', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
       'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
+=======
+    const bulan = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+>>>>>>> Stashed changes
     return '${bulan[dt.month]} ${dt.year}';
   }
 
@@ -521,7 +538,8 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item.dosis,
-                    style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                    style:
+                        TextStyle(fontSize: 11, color: Colors.grey[500])),
                 const SizedBox(height: 4),
                 Row(
                   children: [
@@ -529,7 +547,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 10,
                         height: 10,
                         decoration: const BoxDecoration(
-                            color: Color(0xFF9C27B0), shape: BoxShape.circle)),
+                            color: Color(0xFF9C27B0),
+                            shape: BoxShape.circle)),
                     const SizedBox(width: 4),
                     Text(item.namaObat,
                         style: const TextStyle(
@@ -545,12 +564,20 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 26,
               height: 26,
               decoration: BoxDecoration(
-                color: item.isDone ? const Color(0xFF15BE77) : Colors.white,
+                color: item.isDone
+                    ? const Color(0xFF15BE77)
+                    : Colors.white,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
+<<<<<<< Updated upstream
                   color: isLate && !item.isDone
                       ? Colors.red
                       : (item.isDone ? const Color(0xFF15BE77) : Colors.grey[300]!),
+=======
+                  color: item.isDone
+                      ? const Color(0xFF15BE77)
+                      : Colors.grey[300]!,
+>>>>>>> Stashed changes
                   width: 1.5,
                 ),
               ),
@@ -581,8 +608,8 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _navItem(Icons.home_rounded, 0),
-          _navItem(Icons.list_alt_rounded, 1),
+          _navItem(Icons.home_rounded, 0, onTap: () => setState(() => _selectedNav = 0)),
+          _navItem(Icons.list_alt_rounded, 1, onTap: () => setState(() => _selectedNav = 1)),
           GestureDetector(
             onTap: () {},
             child: Container(
@@ -601,6 +628,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Icon(Icons.add, color: Colors.white, size: 28),
             ),
           ),
+<<<<<<< Updated upstream
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -632,14 +660,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     : Colors.grey[400],
                 size: 26),
           ),
+=======
+          _navItem(Icons.directions_run_rounded, 2, onTap: () {
+            setState(() => _selectedNav = 2);
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const JadwalRutinitasScreen()));
+          }),
+          _navItem(Icons.settings_outlined, 3, onTap: () async {
+            setState(() => _selectedNav = 3);
+            await auth.logout();
+            if (context.mounted) {
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+            }
+          }),
+>>>>>>> Stashed changes
         ],
       ),
     );
   }
 
-  Widget _navItem(IconData icon, int index) {
+  Widget _navItem(IconData icon, int index, {required VoidCallback onTap}) {
     return GestureDetector(
-      onTap: () => setState(() => _selectedNav = index),
+      onTap: onTap,
       child: Icon(icon,
           color: _selectedNav == index
               ? const Color(0xFF15BE77)
