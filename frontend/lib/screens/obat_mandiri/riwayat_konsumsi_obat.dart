@@ -1,697 +1,460 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/api_service.dart';
-import '../../config/app_config.dart';
+
+// ─── MODEL ───────────────────────────────────────────────────────────────────
+
+enum MedStatus { taken, missed }
+
+class MedLog {
+  final String name;
+  final String instruction;
+  final MedStatus status;
+  final Color color;
+
+  const MedLog({
+    required this.name,
+    required this.instruction,
+    required this.status,
+    this.color = const Color(0xFF4CAF82),
+  });
+}
+
+class DayLog {
+  final DateTime date;
+  final List<MedLog> logs;
+  const DayLog({required this.date, required this.logs});
+}
+
+// ─── SCREEN ───────────────────────────────────────────────────────────────────
 
 class RiwayatKonsumsiObatScreen extends StatefulWidget {
-  const RiwayatKonsumsiObatScreen({super.key});
+  final int pasienId;
+
+  const RiwayatKonsumsiObatScreen({super.key, required this.pasienId});
 
   @override
-<<<<<<< Updated upstream
   State<RiwayatKonsumsiObatScreen> createState() =>
       _RiwayatKonsumsiObatScreenState();
 }
 
 class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen> {
-  // ── Warna utama ────────────────────────────────────────────────────────────
-  static const Color _bgPage = Color(0xFFF8FAF9);
-  static const Color _cyan = Color(0xFF00D4D4);
-  static const Color _textPrimary = Color(0xFF0F172A);
-  static const Color _textSecondary = Color(0xFF64748B);
-  static const Color _cardBg = Color(0xFFF6F8F7);
-  static const Color _cardBorder = Color(0xFFF1F5F9);
-  // ─────────────────────────────────────────────────────────────────────────
+  int _selectedFilter = 0;
+  final List<String> _filters = ['Semua', '7 Hari', '30 Hari', '3 Bulan'];
 
-  final ApiService _api = ApiService();
-  int? _pasienId;
-  String _selectedPeriod = '7 Hari';
-  
-  // Data dari backend
-  double _compliancePercentage = 0.0;
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<DayLog> _allData = [];
+  double _compliancePercent = 0;
   int _takenDoses = 0;
   int _totalDoses = 0;
-  List<Map<String, dynamic>> _trackingData = [];
-  bool _isLoading = true;
-=======
-  State<RiwayatKonsumsiObatScreen> createState() => _RiwayatKonsumsiObatScreenState();
-}
 
-class _RiwayatKonsumsiObatScreenState extends State<RiwayatKonsumsiObatScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-
-  // KONFIGURASI WARNA
-  static const Color _bgPage = Color(0xFFF8FAF9);
-  static const Color _streakBg = Color(0xFF10221C);
-  static const Color _streakTeal = Color(0xFF13ECA4);
-  static const Color _tabActive = Color(0xFF0F172A);
-  static const Color _tabInactive = Color(0xFF64748B);
-  static const Color _cardBg = Color(0xFFF6F8F7);
-  static const Color _cardBorder = Color(0xFFF1F5F9);
-
-  final int _streakHari = 12;
-
-  final List<JadwalRutinitasItem> _jadwalList = [
-    JadwalRutinitasItem(
-      jadwalRutinitasId: 1,
-      namaAktivitas: 'Lari Pagi',
-      jamMulai: '06:30',
-      jamSelesai: '07:00',
-      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'],
-      status: 'done',
-    ),
-    JadwalRutinitasItem(
-      jadwalRutinitasId: 2,
-      namaAktivitas: 'Minum Air Putih',
-      jamMulai: '19:00',
-      jamSelesai: '20:00',
-      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-      status: 'done',
-    ),
-    JadwalRutinitasItem(
-      jadwalRutinitasId: 3,
-      namaAktivitas: 'Makan Malam',
-      jamMulai: '08:00',
-      jamSelesai: '09:00',
-      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'],
-      status: 'done',
-    ),
-    JadwalRutinitasItem(
-      jadwalRutinitasId: 4,
-      namaAktivitas: 'Sedekah',
-      jamMulai: '21:00',
-      jamSelesai: '22:00',
-      pengulangan: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum'],
-      status: 'terlewat',
-    ),
-  ];
->>>>>>> Stashed changes
+  final ApiService _api = ApiService();
 
   @override
   void initState() {
     super.initState();
-<<<<<<< Updated upstream
-    _loadData();
+    _loadAllRiwayat();
   }
 
-  Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-    _pasienId = prefs.getInt(AppConfig.userIdKey);
+  Future<void> _loadAllRiwayat() async {
+    try {
+      setState(() => _isLoading = true);
 
-    if (_pasienId != null) {
-      await Future.wait([
-        _loadComplianceStats(),
-        _loadTrackingData(),
-      ]);
-    }
+      // Get riwayat dari API
+      final riwayatList = await _api.getRiwayatByPasien(widget.pasienId);
 
-    setState(() => _isLoading = false);
-  }
+      // Get compliance stats
+      final statsResponse = await _api.getComplianceStats(widget.pasienId);
+      final takenDoses = statsResponse['taken_doses'] ?? 0;
+      final totalDoses = statsResponse['total_doses'] ?? 0;
 
-  Future<void> _loadComplianceStats() async {
-    if (_pasienId == null) return;
+      // Group riwayat by date
+      Map<DateTime, List<MedLog>> groupedByDate = {};
+      for (final riwayat in riwayatList) {
+        final tanggalStr = riwayat['tanggal'] ?? '';
+        final tanggal = DateTime.tryParse(tanggalStr) ?? DateTime.now();
+        final dateKey = DateTime(tanggal.year, tanggal.month, tanggal.day);
 
-    final stats = await _api.getComplianceStats(_pasienId!);
-    setState(() {
-      _compliancePercentage = (stats['percentage'] as num?)?.toDouble() ?? 0.0;
-      _takenDoses = stats['takenDoses'] as int? ?? 0;
-      _totalDoses = stats['totalDoses'] as int? ?? 0;
-    });
-  }
+        if (!groupedByDate.containsKey(dateKey)) {
+          groupedByDate[dateKey] = [];
+        }
 
-  Future<void> _loadTrackingData() async {
-    if (_pasienId == null) return;
-
-    final days = int.parse(_selectedPeriod.split(' ')[0]);
-    final endDate = DateTime.now();
-    final startDate = endDate.subtract(Duration(days: days));
-
-    final data =
-        await _api.getTrackingByDateRange(
-          pasienId: _pasienId!,
-          startDate: startDate,
-          endDate: endDate,
+        final medLog = MedLog(
+          name: riwayat['nama_obat'] ?? 'Obat ${riwayat['jadwal_obat_id']}',
+          instruction: 'Diminum, ${riwayat['jam_minum'] ?? ''}',
+          status: riwayat['status'] == 'done' ? MedStatus.taken : MedStatus.missed,
         );
 
-    setState(() => _trackingData = data);
+        groupedByDate[dateKey]!.add(medLog);
+      }
+
+      // Convert to DayLog list
+      final dayLogs = groupedByDate.entries
+          .map((e) => DayLog(date: e.key, logs: e.value))
+          .toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+
+      setState(() {
+        _allData = dayLogs;
+        _takenDoses = takenDoses;
+        _totalDoses = totalDoses;
+        _compliancePercent = totalDoses == 0 ? 0 : takenDoses / totalDoses;
+        _isLoading = false;
+        _errorMessage = null;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Gagal memuat riwayat: $e';
+      });
+    }
   }
 
-  Future<void> _refreshData() async {
-    setState(() => _isLoading = true);
-    await _loadData();
-=======
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 1);
-    _loadData();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadData() async {
-    await SharedPreferences.getInstance();
-  }
-
-  Future<void> _refresh() async {
-    await _loadData();
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (mounted) setState(() {});
-  }
-
-  String _hariIni() {
-    const hari = ['', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-    const bulan = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  // ── Daftar obat: berubah sesuai filter ──
+  List<DayLog> get _filteredData {
     final now = DateTime.now();
-    return '${hari[now.weekday]}, ${now.day} ${bulan[now.month]}';
->>>>>>> Stashed changes
+    final cutoffDays = [null, 7, 30, 90][_selectedFilter];
+    if (cutoffDays == null) return _allData;
+    final cutoff = now.subtract(Duration(days: cutoffDays));
+    return _allData.where((d) => d.date.isAfter(cutoff)).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _bgPage,
-      body: SafeArea(
-        child: Column(
-          children: [
-<<<<<<< Updated upstream
-            // ── Header ────────────────────────────────────────────────────
-            _buildHeader(),
-            // ── Content ───────────────────────────────────────────────────
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: _cyan),
-                    )
-                  : RefreshIndicator(
-                      color: _cyan,
-                      onRefresh: _refreshData,
-                      child: ListView(
-                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
-                        children: [
-                          // Compliance Card
-                          _buildComplianceCard(),
-                          const SizedBox(height: 20),
-                          // Period Buttons
-                          _buildPeriodButtons(),
-                          const SizedBox(height: 24),
-                          // Today's Medicines
-                          _buildTodayHeader(),
-                          const SizedBox(height: 12),
-                          if (_trackingData.isEmpty)
-                            _buildEmptyState()
-                          else
-                            ..._trackingData.map(_buildObatItem),
-                        ],
-                      ),
-                    ),
-=======
-            _header(),
-            _tabBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _obatTab(),
-                  _rutinitasTab(),
-                ],
-              ),
->>>>>>> Stashed changes
-            ),
-          ],
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF5F6FA),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon:
+                const Icon(Icons.chevron_left, color: Colors.black87, size: 28),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text('Riwayat',
+              style: TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18)),
         ),
+        body: const Center(
+          child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation(Color(0xFF2BB673))),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Scaffold(
+        backgroundColor: const Color(0xFFF5F6FA),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon:
+                const Icon(Icons.chevron_left, color: Colors.black87, size: 28),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text('Riwayat',
+              style: TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18)),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(_errorMessage!,
+                  style: const TextStyle(color: Colors.red, fontSize: 14)),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadAllRiwayat,
+                child: const Text('Coba Lagi'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.chevron_left, color: Colors.black87, size: 28),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text('Riwayat',
+            style: TextStyle(
+                color: Colors.black87,
+                fontWeight: FontWeight.w600,
+                fontSize: 18)),
       ),
-<<<<<<< Updated upstream
-    );
-  }
-
-  // ── Header ──────────────────────────────────────────────────────────────
-  Widget _buildHeader() {
-=======
-      floatingActionButton: _fab(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
-  }
-
-  Widget _header() {
->>>>>>> Stashed changes
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.all(16),
-      child: Row(
+      body: ListView(
+        padding: EdgeInsets.zero,
         children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: const Icon(Icons.arrow_back),
-          ),
-          const Expanded(
-            child: Text(
-<<<<<<< Updated upstream
-              'Riwayat',
-=======
-              'Riwayat Kesehatan',
->>>>>>> Stashed changes
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ),
-          const SizedBox(width: 24),
+          _buildComplianceCard(),
+          _buildFilterRow(),
+          const SizedBox(height: 8),
+          ..._buildDayLogs(),
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-<<<<<<< Updated upstream
-  // ── Compliance Card ─────────────────────────────────────────────────────
   Widget _buildComplianceCard() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _cardBorder, width: 1),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2))
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Riwayat Tingkat Kepatuhan',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: _textSecondary,
-              fontFamily: 'Inter',
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              // Percentage Circle
-              SizedBox(
-                width: 80,
-                height: 80,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 80,
-                      height: 80,
-                      child: CircularProgressIndicator(
-                        value: _compliancePercentage / 100,
-                        strokeWidth: 6,
-                        valueColor:
-                            const AlwaysStoppedAnimation<Color>(_cyan),
-                        backgroundColor: const Color(0xFFE0F2F1),
-                      ),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${_compliancePercentage.toStringAsFixed(0)}%',
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: _cyan,
-                            fontFamily: 'Roboto',
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '$_totalDoses Dosis',
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: _textSecondary,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 20),
-              // Info text
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Kepatuhan Anda',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: _textSecondary,
-                        fontFamily: 'Inter',
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _getComplianceMessage(),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: _textPrimary,
-                        fontFamily: 'Roboto',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getComplianceMessage() {
-    if (_compliancePercentage >= 80) {
-      return 'Bagus sekali!';
-    } else if (_compliancePercentage >= 60) {
-      return 'Cukup baik!';
-    } else if (_compliancePercentage >= 40) {
-      return 'Perlu ditingkatkan';
-    } else {
-      return 'Harus lebih baik';
-    }
-  }
-
-  // ── Period Buttons ──────────────────────────────────────────────────────
-  Widget _buildPeriodButtons() {
-    final periods = ['3 Hari', '7 Hari', '30 Hari', '3 Bulan'];
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: periods.map((period) {
-        final isSelected = period == _selectedPeriod;
-        return GestureDetector(
-          onTap: () async {
-            setState(() {
-              _selectedPeriod = period;
-              _isLoading = true;
-            });
-            await _loadTrackingData();
-            setState(() => _isLoading = false);
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: isSelected ? _cyan : Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: isSelected ? _cyan : _cardBorder,
-                width: 1,
-              ),
-            ),
-            child: Text(
-              period,
+          const Text('Rataan Tingkat Kepatuhan',
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : _textSecondary,
-                fontFamily: 'Inter',
-=======
-  Widget _tabBar() {
-    return Container(
-      color: Colors.white,
-      child: TabBar(
-        controller: _tabController,
-        labelColor: _tabActive,
-        unselectedLabelColor: _tabInactive,
-        indicatorColor: _streakTeal,
-        tabs: const [
-          Tab(text: 'Obat'),
-          Tab(text: 'Rutinitas'),
-        ],
-      ),
-    );
-  }
-
-  Widget _obatTab() {
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: const [
-          SizedBox(height: 50),
-          Text("Belum ada jadwal obat", textAlign: TextAlign.center),
-        ],
-      ),
-    );
-  }
-
-  Widget _rutinitasTab() {
-    return RefreshIndicator(
-      onRefresh: _refresh,
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _streakCard(),
-          const SizedBox(height: 24),
-          Text(_hariIni(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 12),
-          ..._jadwalList.map((item) => _jadwalCard(item)),
-          const SizedBox(height: 80),
-        ],
-      ),
-    );
-  }
-
-  Widget _streakCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _streakBg,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Streak Kamu", style: TextStyle(color: _streakTeal.withOpacity(0.7))),
-              Text(
-                "$_streakHari Hari",
-                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          const Icon(Icons.local_fire_department, color: _streakTeal, size: 40),
-        ],
-      ),
-    );
-  }
-
-  Widget _jadwalCard(JadwalRutinitasItem item) {
-    final bool isDone = item.status == 'done';
-    final bool isLate = item.status == 'terlewat';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _cardBorder),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(item.namaAktivitas, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text("${item.jamMulai} - ${item.jamSelesai}", 
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
+                  fontSize: 14,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500)),
+          const SizedBox(height: 8),
+          Text('${(_compliancePercent * 100).toStringAsFixed(0)}%',
+              style: const TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF2BB673),
+                  height: 1.1)),
+          const SizedBox(height: 6),
+          Text('$_takenDoses / $_totalDoses Dosis',
+              style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w500)),
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(99),
+            child: LinearProgressIndicator(
+              value: _compliancePercent,
+              minHeight: 8,
+              backgroundColor: const Color(0xFFE8F5EE),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF2BB673)),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: isDone ? Colors.green.withOpacity(0.1) : isLate ? Colors.red.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              isDone ? "Selesai" : isLate ? "Terlewat" : "Pending",
-              style: TextStyle(
-                fontSize: 12,
-                color: isDone ? Colors.green : isLate ? Colors.red : Colors.orange,
->>>>>>> Stashed changes
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  // ── Today Header ────────────────────────────────────────────────────────
-  Widget _buildTodayHeader() {
-    return Text(
-      'RIWAYAT ($_selectedPeriod)',
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: _textSecondary,
-        letterSpacing: 0.5,
-        fontFamily: 'Inter',
+        ],
       ),
     );
   }
 
-  // ── Empty State ─────────────────────────────────────────────────────────
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 40),
-        child: Column(
-          children: const [
-            Text('💊', style: TextStyle(fontSize: 48)),
-            SizedBox(height: 12),
-            Text(
-              'Belum ada riwayat',
-              style: TextStyle(
-                fontSize: 14,
-                color: _textSecondary,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Obat Item ────────────────────────────────────────────────────────────
-  Widget _buildObatItem(Map<String, dynamic> tracking) {
-    final status = tracking['status'] as String? ?? 'pending';
-    final tanggal = tracking['tanggal'] as String? ?? '';
-    final waktu = tracking['waktu'] as String? ?? '';
-    final jadwalId = tracking['jadwal_id'];
-
-    IconData iconData;
-    Color iconColor;
-
-    switch (status.toLowerCase()) {
-      case 'taken':
-      case 'done':
-        iconData = Icons.check_circle;
-        iconColor = const Color(0xFF13EC5B);
-        break;
-      case 'missed':
-        iconData = Icons.cancel;
-        iconColor = const Color(0xFFEC1E13);
-        break;
-      case 'pending':
-      default:
-        iconData = Icons.radio_button_unchecked;
-        iconColor = const Color(0xFFCBD5E1);
-        break;
-    }
-
-    // Parse tanggal
-    String displayDate = '';
-    try {
-      if (tanggal.isNotEmpty) {
-        final date = DateTime.parse(tanggal);
-        displayDate =
-            '${date.day}/${date.month}/${date.year}';
-      }
-    } catch (_) {
-      displayDate = tanggal;
-    }
-
+  Widget _buildFilterRow() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _cardBorder, width: 1),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6)
+        ],
+      ),
+      child: Row(
+        children: List.generate(_filters.length, (i) {
+          final selected = i == _selectedFilter;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedFilter = i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color:
+                      selected ? const Color(0xFF2BB673) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Text(_filters[i],
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: selected ? Colors.white : Colors.black54)),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  List<Widget> _buildDayLogs() {
+    if (_filteredData.isEmpty) {
+      return [
+        const Padding(
+          padding: EdgeInsets.all(32),
+          child: Center(
+            child: Text('Tidak ada riwayat untuk periode ini',
+                style: TextStyle(color: Colors.black45, fontSize: 14)),
+          ),
+        )
+      ];
+    }
+
+    final now = DateTime.now();
+    final widgets = <Widget>[];
+
+    for (final day in _filteredData) {
+      final isToday = _isSameDay(day.date, now);
+      final isYesterday =
+          _isSameDay(day.date, now.subtract(const Duration(days: 1)));
+      final dayLabel = isToday
+          ? 'Hari Ini'
+          : isYesterday
+              ? 'Kemarin'
+              : '';
+      final dayStr =
+          '${_dayName(day.date.weekday)}, ${day.date.day} ${_monthName(day.date.month)}';
+
+      widgets.add(Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+        child: RichText(
+          text: TextSpan(children: [
+            if (dayLabel.isNotEmpty)
+              TextSpan(
+                  text: '$dayLabel · ',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF2BB673))),
+            TextSpan(
+                text: dayStr.toUpperCase(),
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black45,
+                    letterSpacing: 0.5)),
+          ]),
+        ),
+      ));
+
+      for (final log in day.logs) {
+        widgets.add(_buildMedCard(log));
+      }
+    }
+
+    return widgets;
+  }
+
+  Widget _buildMedCard(MedLog log) {
+    final isMissed = log.status == MedStatus.missed;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2))
+        ],
       ),
       child: Row(
         children: [
-          // Icon obat
           Container(
-            width: 44,
-            height: 44,
+            width: 5,
+            height: 64,
             decoration: BoxDecoration(
-              color: const Color(0xFFFFF3E0),
-              borderRadius: BorderRadius.circular(8),
+              color: isMissed ? const Color(0xFFE53935) : log.color,
+              borderRadius:
+                  const BorderRadius.horizontal(left: Radius.circular(14)),
             ),
-            alignment: Alignment.center,
-            child: const Text('💊', style: TextStyle(fontSize: 24)),
           ),
-          const SizedBox(width: 12),
-          // Nama & Jam
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: log.color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(Icons.medication_rounded, color: log.color, size: 22),
+            ),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  'Jadwal #$jadwalId',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: _textPrimary,
-                    fontFamily: 'Roboto',
-                  ),
-                ),
+                Text(log.name,
+                    style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87)),
                 const SizedBox(height: 2),
-                Text(
-                  '$displayDate $waktu',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: _textSecondary,
-                    fontFamily: 'Inter',
-                  ),
-                ),
+                Text(log.instruction,
+                    style:
+                        const TextStyle(fontSize: 12, color: Colors.black45)),
               ],
             ),
           ),
-          // Status Icon
-          Icon(
-            iconData,
-            size: 24,
-            color: iconColor,
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: isMissed
+                    ? const Color(0xFFE53935)
+                    : const Color(0xFF2BB673),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(isMissed ? Icons.close : Icons.check,
+                  color: Colors.white, size: 18),
+            ),
           ),
         ],
       ),
     );
   }
-<<<<<<< Updated upstream
-}
-=======
 
-  Widget _fab() {
-    return Container(
-      width: MediaQuery.of(context).size.width - 80,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _tabActive,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: const Text(
-          "Unduh Laporan (PDF)", 
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-    );
-  }
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _dayName(int weekday) => [
+        'Senin',
+        'Selasa',
+        'Rabu',
+        'Kamis',
+        'Jumat',
+        'Sabtu',
+        'Minggu'
+      ][weekday - 1];
+
+  String _monthName(int month) => [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des'
+      ][month - 1];
 }
->>>>>>> Stashed changes

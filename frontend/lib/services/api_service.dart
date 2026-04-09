@@ -302,4 +302,7 @@ class ApiService {
       return [];
     }
   }
+  Future<List<Map<String, dynamic>>> getRiwayatByPasien(int pasienId) async {
+    return await getTrackingByPasien(pasienId);
+  }
 }

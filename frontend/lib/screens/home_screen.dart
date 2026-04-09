@@ -9,6 +9,7 @@ import './rutinitas_mandiri/jadwal_rutinitas_screen.dart';
 import './obat_mandiri/riwayat_konsumsi_obat.dart';
 import './profile/profile.dart';
 import './rutinitas_mandiri/rutinitas_sehat_screen.dart';
+import './obat_mandiri/info_obat.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -176,12 +177,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       subtitle: 'Kelola Pengingat')),
               const SizedBox(width: 12),
               Expanded(
-                  child: _menuCard(
-                      icon: Icons.medical_information_outlined,
-                      iconColor: const Color(0xFFFFB300),
-                      bgColor: const Color(0xFFFFFDE7),
-                      title: 'Info Obat',
-                      subtitle: 'Detail & Panduan')),
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const InfoObatScreen(),
+                      ),
+                    ),
+                    child: _menuCard(
+                        icon: Icons.medical_information_outlined,
+                        iconColor: const Color(0xFFFFB300),
+                        bgColor: const Color(0xFFFFFDE7),
+                        title: 'Info Obat',
+                        subtitle: 'Detail & Panduan'),
+                  )),
             ],
           ),
           const SizedBox(height: 12),
@@ -192,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const RiwayatKonsumsiObatScreen(),
+                      builder: (_) => RiwayatKonsumsiObatScreen(pasienId: _pasienId ?? 1),
                     ),
                   ),
                   child: _menuCard(
